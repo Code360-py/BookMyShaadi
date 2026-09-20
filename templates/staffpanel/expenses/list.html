@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block sidebar %}{% include "staffpanel/partials/sidebar.html" %}{% endblock %}
+{% block tabbar %}{% include "staffpanel/partials/tabbar.html" %}{% endblock %}
+{% block title %}Expenses — {{ SITE_NAME }}{% endblock %}
+
+{% block content %}
+<div class="row between" style="margin-bottom:16px;">
+  <h2 style="margin:0;">Expenses</h2>
+  <a href="{% url 'staffpanel:expense_create' %}" class="btn btn-primary">+ New</a>
+</div>
+
+<form method="get" class="row" style="margin-bottom:16px;gap:8px;">
+  <input type="text" name="q" value="{{ q }}" placeholder="Search description, event, vendor" style="flex:1;min-width:200px;">
+  <button type="submit">Search</button>
+</form>
+
+<div class="row" style="margin-bottom:14px;gap:8px;flex-wrap:wrap;">
+  <a href="{% url 'staffpanel:expense_list' %}" class="pill {% if not status %}info{% endif %}">All</a>
+  {% for key, label in status_choices %}
+    <a href="{% url 'staffpanel:expense_list' %}?status={{ key }}" class="pill {% if status == key %}info{% endif %}">{{ label }}</a>
+  {% endfor %}
+</div>
+
+{% if total %}
+<div class="card" style="margin-bottom:14px;">
+  <span class="muted">Total shown:</span>
+  <strong style="font-size:1.2rem;">{{ total }}</strong>
+</div>
+{% endif %}
+
+{% if expenses %}
+<div class="table-wrap">
+  <table class="data">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Event</th>
+        <th>Category</th>
+        <th>Vendor</th>
+        <th>Amount</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for e in expenses %}
+      <tr>
+        <td><a href="{% url 'staffpanel:expense_detail' e.pk %}">{{ e.date|date:"d M Y" }}</a></td>
+        <td>{{ e.event.title|truncatechars:28 }}</td>
+        <td>{{ e.get_category_display }}</td>
+        <td>{{ e.vendor.name|default:"—" }}</td>
+        <td>{{ e.amount }}</td>
+        <td><span class="pill {% if e.status == 'PAID' %}ok{% elif e.status == 'PARTIAL' %}warn{% else %}info{% endif %}">{{ e.get_status_display }}</span></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="card"><p class="muted" style="margin:0;">No expenses yet.</p></div>
+{% endif %}
+{% endblock %}

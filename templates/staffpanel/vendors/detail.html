@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block sidebar %}{% include "staffpanel/partials/sidebar.html" %}{% endblock %}
+{% block tabbar %}{% include "staffpanel/partials/tabbar.html" %}{% endblock %}
+{% block title %}{{ vendor.name }} — Vendor{% endblock %}
+
+{% block topnav %}<a href="{% url 'staffpanel:vendor_list' %}">← Vendors</a>{% endblock %}
+
+{% block content %}
+<h2 style="margin:0 0 4px;">{{ vendor.name }}</h2>
+<p class="muted" style="margin:0 0 20px;">
+  {{ vendor.get_service_type_display }} ·
+  {% if vendor.is_active %}<span class="pill ok">Active</span>{% else %}<span class="pill err">Inactive</span>{% endif %}
+</p>
+
+<div class="card">
+  <div class="stack">
+    <div class="row between"><span class="muted">Contact</span><span>{{ vendor.contact_person|default:"—" }}</span></div>
+    <div class="row between"><span class="muted">Phone</span><span>{{ vendor.phone|default:"—" }}</span></div>
+    <div class="row between"><span class="muted">Email</span><span>{{ vendor.email|default:"—" }}</span></div>
+    <div class="row between"><span class="muted">Address</span><span>{{ vendor.address|default:"—" }}</span></div>
+    {% if vendor.website %}
+    <div class="row between"><span class="muted">Website</span><a href="{{ vendor.website }}" target="_blank" rel="noopener">{{ vendor.website }}</a></div>
+    {% endif %}
+    {% if vendor.notes %}
+    <div><div class="muted" style="margin-bottom:6px;">Notes</div><div style="white-space:pre-wrap;">{{ vendor.notes }}</div></div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="row" style="margin-top:20px;gap:10px;flex-wrap:wrap;">
+  <a href="{% url 'staffpanel:vendor_edit' vendor.pk %}" class="btn btn-primary">Edit</a>
+  {% if staff and staff.is_admin or staff and staff.is_manager %}
+  <form method="post" action="{% url 'staffpanel:vendor_delete' vendor.pk %}"
+        onsubmit="return confirm('Delete this vendor permanently?');">
+    {% csrf_token %}
+    <button type="submit" class="btn-danger">Delete</button>
+  </form>
+  {% endif %}
+</div>
+{% endblock %}

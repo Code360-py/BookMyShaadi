@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block body_class %}bare{% endblock %}
+{% block title %}Sign in — {{ SITE_NAME }}{% endblock %}
+
+{% block topnav %}
+  <a href="/">← Home</a>
+{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:420px;margin:0 auto;">
+  <h2 style="margin:0 0 6px;">Sign in</h2>
+  <p class="muted" style="margin:0 0 18px;font-size:.9rem;">Welcome to {{ SITE_NAME }}.</p>
+
+  <!-- Tabs -->
+  <div style="display:flex;gap:6px;background:rgba(0,0,0,.28);border:1px solid rgba(255,255,255,.10);border-radius:12px;padding:4px;margin-bottom:18px;">
+    <a href="?tab=customer{% if next %}&next={{ next }}{% endif %}"
+       style="flex:1;text-align:center;padding:9px 0;border-radius:9px;font-weight:600;font-size:.9rem;text-decoration:none;
+              {% if tab == 'customer' %}background:linear-gradient(135deg,#ff4d8d,#a01a58);color:#fff;
+              {% else %}color:var(--text-dim);{% endif %}">
+      Customer
+    </a>
+    <a href="?tab=staff{% if next %}&next={{ next }}{% endif %}"
+       style="flex:1;text-align:center;padding:9px 0;border-radius:9px;font-weight:600;font-size:.9rem;text-decoration:none;
+              {% if tab == 'staff' %}background:linear-gradient(135deg,#ff4d8d,#a01a58);color:#fff;
+              {% else %}color:var(--text-dim);{% endif %}">
+      Staff
+    </a>
+  </div>
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+    <input type="hidden" name="tab" value="{{ tab }}">
+    <input type="hidden" name="next" value="{{ next }}">
+
+    <label for="email">Email</label>
+    <input type="email" name="email" id="email" value="{{ email|default:'' }}"
+           required autofocus autocomplete="username" inputmode="email">
+
+    <label for="password">Password</label>
+    <input type="password" name="password" id="password"
+           required autocomplete="current-password">
+
+    <div style="margin-top:20px;">
+      <button type="submit" class="btn-primary" style="width:100%;">
+        Sign in as {% if tab == 'staff' %}staff{% else %}customer{% endif %}
+      </button>
+    </div>
+  </form>
+
+  {% if tab == 'customer' %}
+  <p class="center muted" style="margin:18px 0 0;font-size:.9rem;">
+    New here? <a href="{% url 'accounts:register' %}">Create an account</a>
+  </p>
+  {% else %}
+  <p class="center muted" style="margin:18px 0 0;font-size:.85rem;">
+    Staff accounts are created by an administrator.
+  </p>
+  {% endif %}
+</div>
+{% endblock %}

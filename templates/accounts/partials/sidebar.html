@@ -1,0 +1,54 @@
+<nav class="sidebar" id="customerSidebar">
+  <div class="side-brand">
+    <i class="fa-solid fa-heart"></i> {{ SITE_NAME }}
+    <div class="side-sub">My Account</div>
+  </div>
+
+  <div class="side-group">
+    <div class="side-group-label">My wedding</div>
+    <a href="{% url 'accounts:dashboard' %}"    class="{% if nav == 'dashboard' %}active{% endif %}">
+      <i class="fa-solid fa-gauge"></i><span>Dashboard</span>
+    </a>
+    <a href="{% url 'accounts:my_events' %}"    class="{% if nav == 'events' %}active{% endif %}">
+      <i class="fa-solid fa-champagne-glasses"></i><span>My events</span>
+    </a>
+    <a href="{% url 'accounts:my_bookings' %}"  class="{% if nav == 'bookings' %}active{% endif %}">
+      <i class="fa-solid fa-calendar-check"></i><span>My bookings</span>
+    </a>
+  </div>
+
+  <div class="side-group">
+    <div class="side-group-label">Explore</div>
+    <a href="{% url 'core:packages' %}"         class="{% if nav == 'packages' %}active{% endif %}">
+      <i class="fa-solid fa-layer-group"></i><span>Packages</span>
+    </a>
+    <a href="{% url 'core:vendors' %}"          class="{% if nav == 'vendors' %}active{% endif %}">
+      <i class="fa-solid fa-store"></i><span>Vendors</span>
+    </a>
+    <a href="{% url 'core:gallery' %}"          class="{% if nav == 'gallery' %}active{% endif %}">
+      <i class="fa-solid fa-images"></i><span>Gallery</span>
+    </a>
+    <a href="{% url 'bookings:enquiry_create' %}" class="{% if nav == 'enquire' %}active{% endif %}">
+      <i class="fa-solid fa-paper-plane"></i><span>New enquiry</span>
+    </a>
+  </div>
+
+  <div class="side-group">
+    <div class="side-group-label">Account</div>
+    <a href="{% url 'accounts:profile' %}"         class="{% if nav == 'profile' %}active{% endif %}">
+      <i class="fa-solid fa-user"></i><span>Profile</span>
+    </a>
+    <a href="{% url 'accounts:change_password' %}" class="{% if nav == 'password' %}active{% endif %}">
+      <i class="fa-solid fa-lock"></i><span>Change password</span>
+    </a>
+    <a href="{% url 'core:contact' %}"             class="{% if nav == 'contact' %}active{% endif %}">
+      <i class="fa-solid fa-headset"></i><span>Contact us</span>
+    </a>
+  </div>
+
+  <div class="side-footer">
+    <a href="{% url 'accounts:logout' %}" class="side-logout">
+      <i class="fa-solid fa-right-from-bracket"></i><span>Logout</span>
+    </a>
+  </div>
+</nav>

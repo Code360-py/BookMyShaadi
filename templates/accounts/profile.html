@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block body_class %}has-tabbar{% endblock %}
+{% block sidebar %}{% include "accounts/partials/sidebar.html" %}{% endblock %}
+{% block tabbar %}{% include "accounts/partials/tabbar.html" %}{% endblock %}
+{% block title %}Profile — {{ SITE_NAME }}{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:520px;margin:0 auto;">
+  <h2 style="margin:0 0 12px;">Profile</h2>
+  <form method="post" novalidate>
+    {% csrf_token %}
+    <label for="full_name">Full name</label>
+    <input type="text" name="full_name" id="full_name" value="{{ customer.full_name }}" required>
+
+    <label for="email">Email (cannot be changed)</label>
+    <input type="email" value="{{ customer.email }}" disabled>
+
+    <label for="phone">Phone</label>
+    <input type="tel" name="phone" id="phone" value="{{ customer.phone|default:'' }}" inputmode="tel">
+
+    <div class="row" style="margin-top:20px;gap:12px;">
+      <button type="submit" class="btn-primary">Save</button>
+      <a href="{% url 'accounts:change_password' %}" class="btn btn-ghost">Change password</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block sidebar %}{% include "staffpanel/partials/sidebar.html" %}{% endblock %}
+{% block tabbar %}{% include "staffpanel/partials/tabbar.html" %}{% endblock %}
+{% block title %}Collaborations — {{ SITE_NAME }}{% endblock %}
+
+{% block content %}
+<div class="row between" style="margin-bottom:16px;">
+  <h2 style="margin:0;">Collaborations</h2>
+  <a href="{% url 'staffpanel:collab_create' %}" class="btn btn-primary">+ New</a>
+</div>
+
+<form method="get" class="row" style="margin-bottom:16px;gap:8px;">
+  <input type="text" name="q" value="{{ q }}" placeholder="Search partner" style="flex:1;min-width:200px;">
+  <button type="submit">Search</button>
+</form>
+
+<div class="row" style="margin-bottom:14px;gap:8px;flex-wrap:wrap;">
+  <a href="{% url 'staffpanel:collab_list' %}" class="pill {% if not ptype %}info{% endif %}">All</a>
+  {% for key, label in type_choices %}
+    <a href="{% url 'staffpanel:collab_list' %}?type={{ key }}" class="pill {% if ptype == key %}info{% endif %}">{{ label }}</a>
+  {% endfor %}
+</div>
+
+{% if collabs %}
+<div class="table-wrap">
+  <table class="data">
+    <thead>
+      <tr>
+        <th>Partner</th>
+        <th>Type</th>
+        <th>Contact</th>
+        <th>Commission %</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for c in collabs %}
+      <tr>
+        <td><a href="{% url 'staffpanel:collab_detail' c.pk %}">{{ c.partner_name }}</a></td>
+        <td>{{ c.get_partner_type_display }}</td>
+        <td>{{ c.contact_person|default:"—" }}</td>
+        <td>{{ c.commission_pct }}</td>
+        <td>{% if c.is_active %}<span class="pill ok">Active</span>{% else %}<span class="pill err">Inactive</span>{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="card"><p class="muted" style="margin:0;">No collaborations yet.</p></div>
+{% endif %}
+{% endblock %}

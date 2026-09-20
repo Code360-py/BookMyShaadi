@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block body_class %}bare{% endblock %}
+{% block title %}Staff Login — {{ SITE_NAME }}{% endblock %}
+
+{% block topnav %}
+  <a href="/">← Home</a>
+{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:420px;margin:0 auto;">
+  <h2 style="margin:0 0 6px;">Staff Login</h2>
+  <p class="muted" style="margin:0 0 20px;font-size:.9rem;">Authorised personnel only.</p>
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ next }}">
+
+    <label for="email">Email</label>
+    <input type="email" name="email" id="email" value="{{ email|default:'' }}"
+           required autofocus autocomplete="username" inputmode="email"
+           placeholder="you@bookmyshaadi.local">
+
+    <label for="password">Password</label>
+    <input type="password" name="password" id="password"
+           required autocomplete="current-password" placeholder="••••••••">
+
+    <div style="margin-top:22px;">
+      <button type="submit" class="btn-primary" style="width:100%;">Sign in</button>
+    </div>
+  </form>
+
+  <p class="muted center" style="margin:18px 0 0;font-size:.85rem;">
+    Forgot your password? Ask an admin to reset it.
+  </p>
+</div>
+{% endblock %}

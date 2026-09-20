@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block sidebar %}{% include "staffpanel/partials/sidebar.html" %}{% endblock %}
+{% block tabbar %}{% include "staffpanel/partials/tabbar.html" %}{% endblock %}
+{% block title %}{% if mode == "edit" %}Edit task{% else %}New task{% endif %} — {{ SITE_NAME }}{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:560px;margin:0 auto;">
+  <h2 style="margin:0 0 12px;">{% if mode == "edit" %}Edit task{% else %}New task{% endif %}</h2>
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+
+    <label for="title">Title</label>
+    <input type="text" name="title" id="title" required
+           value="{% if task %}{{ task.title }}{% elif data %}{{ data.title }}{% endif %}">
+
+    <label for="event">Event</label>
+    <select name="event" id="event" required>
+      <option value="">— select —</option>
+      {% for ev in events %}
+        <option value="{{ ev.pk }}"
+          {% if task and task.event_id == ev.pk %}selected{% elif data and data.event == ev.pk|stringformat:"s" %}selected{% elif preselect_event == ev.pk|stringformat:"s" %}selected{% endif %}>
+          {{ ev.title }} · {{ ev.date|date:"d M Y" }}
+        </option>
+      {% endfor %}
+    </select>
+
+    <label for="description">Description</label>
+    <textarea name="description" id="description" rows="3">{% if task %}{{ task.description }}{% elif data %}{{ data.description }}{% endif %}</textarea>
+
+    <label for="assigned_to">Assigned to</label>
+    <select name="assigned_to" id="assigned_to">
+      <option value="">— none —</option>
+      {% for s in staff_list %}
+        <option value="{{ s.pk }}"
+          {% if task and task.assigned_to_id == s.pk %}selected{% elif data and data.assigned_to == s.pk|stringformat:"s" %}selected{% endif %}>
+          {{ s.full_name }}
+        </option>
+      {% endfor %}
+    </select>
+
+    <label for="due_date">Due date</label>
+    <input type="date" name="due_date" id="due_date"
+           value="{% if task and task.due_date %}{{ task.due_date|date:'Y-m-d' }}{% elif data %}{{ data.due_date }}{% endif %}">
+
+    <label for="priority">Priority</label>
+    <select name="priority" id="priority">
+      <option value="LOW"  {% if task and task.priority == "LOW" %}selected{% elif data and data.priority == "LOW" %}selected{% endif %}>Low</option>
+      <option value="MED"  {% if task and task.priority == "MED" %}selected{% elif data and data.priority == "MED" %}selected{% elif not task and not data %}selected{% endif %}>Medium</option>
+      <option value="HIGH" {% if task and task.priority == "HIGH" %}selected{% elif data and data.priority == "HIGH" %}selected{% endif %}>High</option>
+    </select>
+
+    <label for="status">Status</label>
+    <select name="status" id="status">
+      <option value="PENDING"   {% if task and task.status == "PENDING" %}selected{% elif data and data.status == "PENDING" %}selected{% endif %}>Pending</option>
+      <option value="ONGOING"   {% if task and task.status == "ONGOING" %}selected{% elif data and data.status == "ONGOING" %}selected{% endif %}>Ongoing</option>
+      <option value="COMPLETED" {% if task and task.status == "COMPLETED" %}selected{% elif data and data.status == "COMPLETED" %}selected{% endif %}>Completed</option>
+      <option value="CANCELLED" {% if task and task.status == "CANCELLED" %}selected{% elif data and data.status == "CANCELLED" %}selected{% endif %}>Cancelled</option>
+    </select>
+
+    <div class="row" style="margin-top:20px;gap:12px;">
+      <button type="submit" class="btn-primary">{% if mode == "edit" %}Save{% else %}Create{% endif %}</button>
+      <a href="{% url 'staffpanel:task_list' %}" class="btn btn-ghost">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

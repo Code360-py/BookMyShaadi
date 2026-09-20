@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block sidebar %}{% include "staffpanel/partials/sidebar.html" %}{% endblock %}
+{% block tabbar %}{% include "staffpanel/partials/tabbar.html" %}{% endblock %}
+{% block title %}Vendors — {{ SITE_NAME }}{% endblock %}
+
+{% block content %}
+<div class="row between" style="margin-bottom:16px;">
+  <h2 style="margin:0;">Vendors</h2>
+  <a href="{% url 'staffpanel:vendor_create' %}" class="btn btn-primary">+ New</a>
+</div>
+
+<form method="get" class="row" style="margin-bottom:16px;gap:8px;">
+  <input type="text" name="q" value="{{ q }}" placeholder="Search name, contact, phone" style="flex:1;min-width:200px;">
+  <button type="submit">Search</button>
+</form>
+
+<div class="row" style="margin-bottom:14px;gap:8px;flex-wrap:wrap;">
+  <a href="{% url 'staffpanel:vendor_list' %}" class="pill {% if not service %}info{% endif %}">All</a>
+  {% for key, label in service_choices %}
+    <a href="{% url 'staffpanel:vendor_list' %}?service={{ key }}" class="pill {% if service == key %}info{% endif %}">{{ label }}</a>
+  {% endfor %}
+</div>
+
+{% if vendors %}
+<div class="table-wrap">
+  <table class="data">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Service</th>
+        <th>Contact</th>
+        <th>Phone</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for v in vendors %}
+      <tr>
+        <td><a href="{% url 'staffpanel:vendor_detail' v.pk %}">{{ v.name }}</a></td>
+        <td>{{ v.get_service_type_display }}</td>
+        <td>{{ v.contact_person|default:"—" }}</td>
+        <td>{{ v.phone|default:"—" }}</td>
+        <td>{% if v.is_active %}<span class="pill ok">Active</span>{% else %}<span class="pill err">Inactive</span>{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="card"><p class="muted" style="margin:0;">No vendors yet.</p></div>
+{% endif %}
+{% endblock %}

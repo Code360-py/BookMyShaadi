@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block sidebar %}{% include "staffpanel/partials/sidebar.html" %}{% endblock %}
+{% block tabbar %}{% include "staffpanel/partials/tabbar.html" %}{% endblock %}
+{% block title %}Payment — {{ SITE_NAME }}{% endblock %}
+
+{% block topnav %}<a href="{% url 'staffpanel:payment_list' %}">← Payments</a>{% endblock %}
+
+{% block content %}
+<h2 style="margin:0 0 4px;">
+  {% if payment.direction == "IN" %}Payment received{% else %}Payment made{% endif %}
+</h2>
+<p class="muted" style="margin:0 0 20px;">
+  {{ payment.amount }} · {{ payment.date|date:"d M Y" }} ·
+  <span class="pill {% if payment.status == 'CLEARED' %}ok{% elif payment.status == 'PENDING' %}warn{% else %}err{% endif %}">{{ payment.get_status_display }}</span>
+</p>
+
+<div class="card">
+  <div class="stack">
+    <div class="row between"><span class="muted">Event</span>
+      <a href="{% url 'staffpanel:event_detail' payment.event.pk %}">{{ payment.event.title }}</a></div>
+    {% if payment.vendor %}
+    <div class="row between"><span class="muted">Vendor</span>
+      <a href="{% url 'staffpanel:vendor_detail' payment.vendor.pk %}">{{ payment.vendor.name }}</a></div>
+    {% endif %}
+    <div class="row between"><span class="muted">Method</span><span>{{ payment.get_method_display }}</span></div>
+    <div class="row between"><span class="muted">Reference</span><span>{{ payment.reference_no|default:"—" }}</span></div>
+    <div class="row between"><span class="muted">Recorded by</span>
+      <span>{% if payment.created_by %}{{ payment.created_by.full_name }} · {% endif %}{{ payment.created_at|date:"d M Y H:i" }}</span>
+    </div>
+    {% if payment.notes %}
+    <div><div class="muted" style="margin-bottom:6px;">Notes</div><div style="white-space:pre-wrap;">{{ payment.notes }}</div></div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="row" style="margin-top:20px;gap:10px;flex-wrap:wrap;">
+  <a href="{% url 'staffpanel:payment_edit' payment.pk %}" class="btn btn-primary">Edit</a>
+  {% if staff and staff.is_admin or staff and staff.is_manager %}
+  <form method="post" action="{% url 'staffpanel:payment_delete' payment.pk %}"
+        onsubmit="return confirm('Delete this payment?');">
+    {% csrf_token %}
+    <button type="submit" class="btn-danger">Delete</button>
+  </form>
+  {% endif %}
+</div>
+{% endblock %}

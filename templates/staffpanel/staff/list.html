@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block sidebar %}{% include "staffpanel/partials/sidebar.html" %}{% endblock %}
+{% block tabbar %}{% include "staffpanel/partials/tabbar.html" %}{% endblock %}
+{% block title %}Staff — {{ SITE_NAME }}{% endblock %}
+
+{% block content %}
+<div class="row between" style="margin-bottom:16px;">
+  <h2 style="margin:0;">Staff</h2>
+  <a href="{% url 'staffpanel:staff_create' %}" class="btn btn-primary">+ New staff</a>
+</div>
+
+<form method="get" class="row" style="margin-bottom:16px;gap:8px;">
+  <input type="text" name="q" value="{{ q }}" placeholder="Search name, email, phone" style="flex:1;min-width:200px;">
+  <button type="submit">Search</button>
+</form>
+
+{% if staff_list %}
+<div class="table-wrap">
+  <table class="data">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Phone</th>
+        <th>Role</th>
+        <th>Status</th>
+        <th>Last login</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for s in staff_list %}
+      <tr>
+        <td><a href="{% url 'staffpanel:staff_detail' s.pk %}">{{ s.full_name }}</a></td>
+        <td>{{ s.email }}</td>
+        <td>{{ s.phone|default:"—" }}</td>
+        <td>
+          <span class="pill
+            {% if s.role == 'ADMIN' %}err
+            {% elif s.role == 'MANAGER' %}warn
+            {% else %}info{% endif %}">{{ s.get_role_display }}</span>
+        </td>
+        <td>
+          {% if s.is_active %}<span class="pill ok">Active</span>
+          {% else %}<span class="pill err">Inactive</span>{% endif %}
+          {% if s.must_change_password %}<span class="pill warn">Must change pw</span>{% endif %}
+        </td>
+        <td>{{ s.last_login|date:"d M Y H:i"|default:"—" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="card"><p class="muted" style="margin:0;">No staff members.</p></div>
+{% endif %}
+{% endblock %}

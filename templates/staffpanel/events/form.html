@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block sidebar %}{% include "staffpanel/partials/sidebar.html" %}{% endblock %}
+{% block tabbar %}{% include "staffpanel/partials/tabbar.html" %}{% endblock %}
+{% block title %}{% if mode == "edit" %}Edit event{% else %}New event{% endif %} — {{ SITE_NAME }}{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:640px;margin:0 auto;">
+  <h2 style="margin:0 0 12px;">{% if mode == "edit" %}Edit event{% else %}New event{% endif %}</h2>
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+
+    <label for="title">Title</label>
+    <input type="text" name="title" id="title"
+           value="{% if event %}{{ event.title }}{% elif data %}{{ data.title }}{% endif %}" required>
+
+    <label for="event_type">Type</label>
+    <select name="event_type" id="event_type">
+      <option value="WEDDING"    {% if event and event.event_type == "WEDDING" %}selected{% elif data and data.event_type == "WEDDING" %}selected{% endif %}>Wedding</option>
+      <option value="ENGAGEMENT" {% if event and event.event_type == "ENGAGEMENT" %}selected{% elif data and data.event_type == "ENGAGEMENT" %}selected{% endif %}>Engagement</option>
+      <option value="BIRTHDAY"   {% if event and event.event_type == "BIRTHDAY" %}selected{% elif data and data.event_type == "BIRTHDAY" %}selected{% endif %}>Birthday</option>
+      <option value="CORPORATE"  {% if event and event.event_type == "CORPORATE" %}selected{% elif data and data.event_type == "CORPORATE" %}selected{% endif %}>Corporate</option>
+      <option value="OTHER"      {% if event and event.event_type == "OTHER" %}selected{% elif data and data.event_type == "OTHER" %}selected{% endif %}>Other</option>
+    </select>
+
+    <label for="customer">Customer</label>
+    <select name="customer" id="customer" required>
+      <option value="">— select —</option>
+      {% for c in customers %}
+        <option value="{{ c.pk }}"
+          {% if event and event.customer_id == c.pk %}selected{% elif data and data.customer == c.pk|stringformat:"s" %}selected{% endif %}>
+          {{ c.full_name }} ({{ c.email }})
+        </option>
+      {% endfor %}
+    </select>
+
+    <label for="bride_name">Bride name (optional)</label>
+    <input type="text" name="bride_name" id="bride_name"
+           value="{% if event %}{{ event.bride_name }}{% elif data %}{{ data.bride_name }}{% endif %}">
+
+    <label for="groom_name">Groom name (optional)</label>
+    <input type="text" name="groom_name" id="groom_name"
+           value="{% if event %}{{ event.groom_name }}{% elif data %}{{ data.groom_name }}{% endif %}">
+
+    <label for="date">Date</label>
+    <input type="date" name="date" id="date" required
+           value="{% if event %}{{ event.date|date:'Y-m-d' }}{% elif data %}{{ data.date }}{% endif %}">
+
+    <label for="end_date">End date (optional)</label>
+    <input type="date" name="end_date" id="end_date"
+           value="{% if event %}{{ event.end_date|date:'Y-m-d' }}{% elif data %}{{ data.end_date }}{% endif %}">
+
+    <label for="location">Location</label>
+    <input type="text" name="location" id="location" required
+           value="{% if event %}{{ event.location }}{% elif data %}{{ data.location }}{% endif %}">
+
+    <label for="guest_count">Guest count (optional)</label>
+    <input type="number" name="guest_count" id="guest_count" min="0"
+           value="{% if event %}{{ event.guest_count }}{% elif data %}{{ data.guest_count }}{% endif %}">
+
+    <label for="budget">Budget</label>
+    <input type="number" step="0.01" name="budget" id="budget" min="0"
+           value="{% if event %}{{ event.budget }}{% elif data %}{{ data.budget }}{% else %}0{% endif %}">
+
+    <label for="status">Status</label>
+    <select name="status" id="status">
+      <option value="PLANNING"  {% if event and event.status == "PLANNING" %}selected{% elif data and data.status == "PLANNING" %}selected{% endif %}>Planning</option>
+      <option value="CONFIRMED" {% if event and event.status == "CONFIRMED" %}selected{% elif data and data.status == "CONFIRMED" %}selected{% endif %}>Confirmed</option>
+      <option value="ONGOING"   {% if event and event.status == "ONGOING" %}selected{% elif data and data.status == "ONGOING" %}selected{% endif %}>Ongoing</option>
+      <option value="COMPLETED" {% if event and event.status == "COMPLETED" %}selected{% elif data and data.status == "COMPLETED" %}selected{% endif %}>Completed</option>
+      <option value="CANCELLED" {% if event and event.status == "CANCELLED" %}selected{% elif data and data.status == "CANCELLED" %}selected{% endif %}>Cancelled</option>
+    </select>
+
+    <label for="notes">Notes</label>
+    <textarea name="notes" id="notes" rows="3">{% if event %}{{ event.notes }}{% elif data %}{{ data.notes }}{% endif %}</textarea>
+
+    <div class="row" style="margin-top:20px;gap:12px;">
+      <button type="submit" class="btn-primary">{% if mode == "edit" %}Save{% else %}Create{% endif %}</button>
+      <a href="{% url 'staffpanel:event_list' %}" class="btn btn-ghost">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

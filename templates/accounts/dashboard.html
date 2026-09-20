@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block body_class %}has-tabbar{% endblock %}
+{% block sidebar %}{% include "accounts/partials/sidebar.html" %}{% endblock %}
+{% block tabbar %}{% include "accounts/partials/tabbar.html" %}{% endblock %}
+{% block title %}My Account — {{ SITE_NAME }}{% endblock %}
+
+{% block content %}
+<h2 style="margin:0 0 4px;">Hi, {{ customer.full_name }}</h2>
+<p class="muted" style="margin:0 0 20px;">{{ customer.email }}</p>
+
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;">
+  <div class="card">
+    <div class="muted" style="font-size:.8rem;">Events</div>
+    <div style="font-size:1.8rem;font-weight:700;">{{ events|length }}</div>
+    <a href="{% url 'accounts:my_events' %}">View →</a>
+  </div>
+  <div class="card">
+    <div class="muted" style="font-size:.8rem;">Bookings</div>
+    <div style="font-size:1.8rem;font-weight:700;">{{ bookings|length }}</div>
+    <a href="{% url 'accounts:my_bookings' %}">View →</a>
+  </div>
+  <div class="card">
+    <div class="muted" style="font-size:.8rem;">Payments</div>
+    <div style="font-size:1.8rem;font-weight:700;">{{ payments|length }}</div>
+  </div>
+</div>
+{% endblock %}

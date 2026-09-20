@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block sidebar %}{% include "staffpanel/partials/sidebar.html" %}{% endblock %}
+{% block tabbar %}{% include "staffpanel/partials/tabbar.html" %}{% endblock %}
+{% block title %}Edit {{ customer.full_name }} — {{ SITE_NAME }}{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:520px;margin:0 auto;">
+  <h2 style="margin:0 0 12px;">Edit customer</h2>
+  <form method="post" novalidate>
+    {% csrf_token %}
+
+    <label for="full_name">Full name</label>
+    <input type="text" name="full_name" id="full_name" value="{{ customer.full_name }}" required>
+
+    <label for="email">Email</label>
+    <input type="email" name="email" id="email" value="{{ customer.email }}" required>
+
+    <label for="phone">Phone</label>
+    <input type="text" name="phone" id="phone" value="{{ customer.phone|default:'' }}">
+
+    <div class="row" style="margin-top:20px;gap:12px;">
+      <button type="submit" class="btn-primary">Save</button>
+      <a href="{% url 'staffpanel:customer_detail' customer.pk %}" class="btn btn-ghost">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}{{ package.name }} — {{ SITE_NAME }}{% endblock %}
+
+{% block topnav %}<a href="{% url 'core:packages' %}">← Packages</a>{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:640px;margin:0 auto;">
+  <h1 style="margin:0 0 4px;">{{ package.name }}</h1>
+  <p class="muted" style="margin:0 0 16px;">{{ package.tagline }}</p>
+  <div style="font-size:1.5rem;font-weight:700;margin-bottom:20px;">From {{ package.price_from }}</div>
+  {% if package.description %}
+  <p style="white-space:pre-wrap;">{{ package.description }}</p>
+  {% endif %}
+  {% if package.feature_list %}
+  <h3 style="margin-top:24px;font-size:1rem;">What's included</h3>
+  <ul class="muted" style="padding-left:18px;">
+    {% for f in package.feature_list %}<li style="margin-bottom:6px;">{{ f }}</li>{% endfor %}
+  </ul>
+  {% endif %}
+  <div style="margin-top:24px;">
+    <a href="{% url 'bookings:enquiry_create' %}" class="btn btn-primary">Enquire about this package</a>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block body_class %}has-tabbar{% endblock %}
+{% block sidebar %}{% include "accounts/partials/sidebar.html" %}{% endblock %}
+{% block tabbar %}{% include "accounts/partials/tabbar.html" %}{% endblock %}
+{% block title %}{{ event.title }} — {{ SITE_NAME }}{% endblock %}
+
+{% block content %}
+<h2 style="margin:0 0 4px;">{{ event.title }}</h2>
+<p class="muted" style="margin:0 0 20px;">
+  {{ event.get_event_type_display }} · {{ event.date|date:"d M Y" }} · {{ event.location }}
+  · <span class="pill info">{{ event.get_status_display }}</span>
+</p>
+
+<div class="card">
+  <div class="stack">
+    <div class="row between"><span class="muted">Budget</span><span>{{ event.budget }}</span></div>
+    {% if event.guest_count %}
+    <div class="row between"><span class="muted">Guests</span><span>{{ event.guest_count }}</span></div>
+    {% endif %}
+  </div>
+</div>
+
+{% if payments %}
+<h2 class="section-title" style="margin-top:24px;">Payments received</h2>
+<div class="table-wrap">
+  <table class="data">
+    <thead><tr><th>Date</th><th>Amount</th><th>Method</th><th>Reference</th></tr></thead>
+    <tbody>
+      {% for p in payments %}
+      <tr>
+        <td>{{ p.date|date:"d M Y" }}</td>
+        <td>{{ p.amount }}</td>
+        <td>{{ p.get_method_display }}</td>
+        <td>{{ p.reference_no|default:"—" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endblock %}

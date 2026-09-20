@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block sidebar %}{% include "staffpanel/partials/sidebar.html" %}{% endblock %}
+{% block tabbar %}{% include "staffpanel/partials/tabbar.html" %}{% endblock %}
+{% block title %}Audit log — {{ SITE_NAME }}{% endblock %}
+
+{% block content %}
+<h2 style="margin:0 0 16px;">Audit log</h2>
+
+<form method="get" class="row" style="margin-bottom:16px;gap:8px;">
+  <input type="text" name="q" value="{{ q }}" placeholder="Search actor, model, detail" style="flex:1;min-width:200px;">
+  {% if action %}<input type="hidden" name="action" value="{{ action }}">{% endif %}
+  <button type="submit">Search</button>
+</form>
+
+<div class="row" style="margin-bottom:14px;gap:8px;flex-wrap:wrap;">
+  <a href="{% url 'staffpanel:audit_list' %}" class="pill {% if not action %}info{% endif %}">All</a>
+  {% for key, label in action_choices %}
+    <a href="{% url 'staffpanel:audit_list' %}?action={{ key }}" class="pill {% if action == key %}info{% endif %}">{{ label }}</a>
+  {% endfor %}
+</div>
+
+{% if entries %}
+<div class="table-wrap">
+  <table class="data">
+    <thead>
+      <tr>
+        <th>When</th>
+        <th>Actor</th>
+        <th>Action</th>
+        <th>Model</th>
+        <th>Object</th>
+        <th>OK</th>
+        <th>IP</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for e in entries %}
+      <tr>
+        <td><a href="{% url 'staffpanel:audit_detail' e.pk %}">{{ e.created_at|date:"d M H:i" }}</a></td>
+        <td>{{ e.actor.full_name|default:e.actor_email|default:"—" }}</td>
+        <td>
+          <span class="pill
+            {% if e.action == 'LOGIN' %}ok
+            {% elif e.action == 'LOGIN_FAILED' %}err
+            {% elif e.action == 'DELETE' %}err
+            {% elif e.action == 'CREATE' %}ok
+            {% elif e.action == 'UPDATE' %}info
+            {% elif e.action == 'PASSWORD_RESET' %}warn
+            {% endif %}">{{ e.get_action_display }}</span>
+        </td>
+        <td>{{ e.model_name|default:"—" }}</td>
+        <td>{{ e.object_repr|truncatechars:40|default:e.object_id|default:"—" }}</td>
+        <td>{% if e.success %}✓{% else %}<span style="color:#f43f5e;">✗</span>{% endif %}</td>
+        <td>{{ e.ip|default:"—" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="card"><p class="muted" style="margin:0;">No audit entries.</p></div>
+{% endif %}
+{% endblock %}

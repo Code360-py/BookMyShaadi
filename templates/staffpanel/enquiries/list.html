@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block sidebar %}{% include "staffpanel/partials/sidebar.html" %}{% endblock %}
+{% block tabbar %}{% include "staffpanel/partials/tabbar.html" %}{% endblock %}
+{% block title %}Enquiries — {{ SITE_NAME }}{% endblock %}
+
+{% block content %}
+<div class="row between" style="margin-bottom:16px;">
+  <h2 style="margin:0;">Enquiries</h2>
+</div>
+
+<div class="row" style="margin-bottom:14px;gap:8px;flex-wrap:wrap;">
+  <a href="{% url 'staffpanel:enquiry_list' %}"
+     class="pill {% if not status %}info{% endif %}">All</a>
+  {% for key, label in status_choices %}
+    <a href="{% url 'staffpanel:enquiry_list' %}?status={{ key }}"
+       class="pill {% if status == key %}info{% endif %}">{{ label }}</a>
+  {% endfor %}
+</div>
+
+{% if enquiries %}
+<div class="table-wrap">
+  <table class="data">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Phone</th>
+        <th>Type</th>
+        <th>Status</th>
+        <th>Received</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for e in enquiries %}
+      <tr>
+        <td><a href="{% url 'staffpanel:enquiry_detail' e.pk %}">{{ e.full_name }}</a></td>
+        <td>{{ e.email }}</td>
+        <td>{{ e.phone }}</td>
+        <td>{{ e.get_event_type_display }}</td>
+        <td><span class="pill {% if e.status == 'NEW' %}info{% elif e.status == 'CONVERTED' %}ok{% elif e.status == 'CLOSED' %}err{% else %}warn{% endif %}">{{ e.get_status_display }}</span></td>
+        <td>{{ e.created_at|date:"d M Y H:i" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="card"><p class="muted" style="margin:0;">No enquiries.</p></div>
+{% endif %}
+{% endblock %}

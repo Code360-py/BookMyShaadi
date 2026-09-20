@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block sidebar %}{% include "staffpanel/partials/sidebar.html" %}{% endblock %}
+{% block tabbar %}{% include "staffpanel/partials/tabbar.html" %}{% endblock %}
+{% block title %}Convert Enquiry — {{ SITE_NAME }}{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:520px;margin:0 auto;">
+  <h2 style="margin:0 0 12px;">Convert to customer</h2>
+  <p class="muted">You're about to create (or link) a <strong>Customer</strong> from this enquiry:</p>
+  <ul>
+    <li><strong>{{ enquiry.full_name }}</strong></li>
+    <li>{{ enquiry.email }}</li>
+    <li>{{ enquiry.phone }}</li>
+  </ul>
+  <p class="muted" style="font-size:.85rem;">
+    If a customer with this email already exists, we'll link to that instead of creating a new one.
+    Otherwise, a temporary password will be generated for you to share securely.
+  </p>
+
+  <form method="post">
+    {% csrf_token %}
+    <div class="row" style="margin-top:20px;gap:12px;">
+      <button type="submit" class="btn-primary">Confirm</button>
+      <a href="{% url 'staffpanel:enquiry_detail' enquiry.pk %}" class="btn btn-ghost">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

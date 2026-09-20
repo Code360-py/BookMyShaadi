@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block sidebar %}{% include "staffpanel/partials/sidebar.html" %}{% endblock %}
+{% block tabbar %}{% include "staffpanel/partials/tabbar.html" %}{% endblock %}
+{% block title %}{{ task.title }} — Task{% endblock %}
+
+{% block topnav %}<a href="{% url 'staffpanel:task_list' %}">← Tasks</a>{% endblock %}
+
+{% block content %}
+<h2 style="margin:0 0 4px;">{{ task.title }}</h2>
+<p class="muted" style="margin:0 0 20px;">
+  For <a href="{% url 'staffpanel:event_detail' task.event.pk %}">{{ task.event.title }}</a> ·
+  <span class="pill {% if task.priority == 'HIGH' %}err{% elif task.priority == 'MED' %}warn{% endif %}">{{ task.get_priority_display }}</span>
+  <span class="pill {% if task.status == 'COMPLETED' %}ok{% elif task.status == 'ONGOING' %}info{% elif task.status == 'CANCELLED' %}err{% endif %}">{{ task.get_status_display }}</span>
+  {% if task.is_overdue %}<span class="pill err">Overdue</span>{% endif %}
+</p>
+
+<div class="card">
+  <div class="stack">
+    <div class="row between"><span class="muted">Assigned to</span><span>{{ task.assigned_to.full_name|default:"—" }}</span></div>
+    <div class="row between"><span class="muted">Due date</span><span>{{ task.due_date|date:"d M Y"|default:"—" }}</span></div>
+    <div class="row between"><span class="muted">Created by</span>
+      <span>{% if task.created_by %}{{ task.created_by.full_name }} · {% endif %}{{ task.created_at|date:"d M Y H:i" }}</span>
+    </div>
+    {% if task.description %}
+    <div><div class="muted" style="margin-bottom:6px;">Description</div><div style="white-space:pre-wrap;">{{ task.description }}</div></div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="row" style="margin-top:20px;gap:10px;flex-wrap:wrap;">
+  <a href="{% url 'staffpanel:task_edit' task.pk %}" class="btn btn-primary">Edit</a>
+
+  <form method="post" action="{% url 'staffpanel:task_toggle_status' task.pk %}">
+    {% csrf_token %}
+    <button type="submit" class="{% if task.status == 'COMPLETED' %}btn-warn{% else %}btn-primary{% endif %}">
+      {% if task.status == 'COMPLETED' %}Mark pending{% else %}Mark complete{% endif %}
+    </button>
+  </form>
+
+  {% if staff and staff.is_admin or staff and staff.is_manager %}
+  <form method="post" action="{% url 'staffpanel:task_delete' task.pk %}"
+        onsubmit="return confirm('Delete this task?');">
+    {% csrf_token %}
+    <button type="submit" class="btn-danger">Delete</button>
+  </form>
+  {% endif %}
+</div>
+{% endblock %}

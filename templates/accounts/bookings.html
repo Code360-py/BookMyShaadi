@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block body_class %}has-tabbar{% endblock %}
+{% block sidebar %}{% include "accounts/partials/sidebar.html" %}{% endblock %}
+{% block tabbar %}{% include "accounts/partials/tabbar.html" %}{% endblock %}
+{% block title %}My bookings — {{ SITE_NAME }}{% endblock %}
+
+{% block content %}
+<h2 style="margin:0 0 20px;">My bookings</h2>
+
+{% if bookings %}
+<div class="table-wrap">
+  <table class="data">
+    <thead><tr><th>When</th><th>Type</th><th>Location</th><th>Status</th></tr></thead>
+    <tbody>
+      {% for b in bookings %}
+      <tr>
+        <td>{{ b.scheduled_at|date:"d M Y H:i" }}</td>
+        <td>{{ b.get_booking_type_display }}</td>
+        <td>{{ b.location|default:"—" }}</td>
+        <td><span class="pill info">{{ b.get_status_display }}</span></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="card"><p class="muted" style="margin:0;">No bookings yet. <a href="{% url 'bookings:enquiry_create' %}">Send an enquiry →</a></p></div>
+{% endif %}
+{% endblock %}

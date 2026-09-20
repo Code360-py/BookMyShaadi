@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block sidebar %}{% include "staffpanel/partials/sidebar.html" %}{% endblock %}
+{% block tabbar %}{% include "staffpanel/partials/tabbar.html" %}{% endblock %}
+{% block title %}{% if mode == "edit" %}Edit booking{% else %}New booking{% endif %} — {{ SITE_NAME }}{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:560px;margin:0 auto;">
+  <h2 style="margin:0 0 12px;">{% if mode == "edit" %}Edit booking{% else %}New booking{% endif %}</h2>
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+
+    <label for="customer">Customer</label>
+    <select name="customer" id="customer" required>
+      <option value="">— select —</option>
+      {% for c in customers %}
+        <option value="{{ c.pk }}"
+          {% if booking and booking.customer_id == c.pk %}selected{% elif data and data.customer == c.pk|stringformat:"s" %}selected{% endif %}>
+          {{ c.full_name }} ({{ c.email }})
+        </option>
+      {% endfor %}
+    </select>
+
+    <label for="booking_type">Type</label>
+    <select name="booking_type" id="booking_type">
+      <option value="CONSULT"    {% if booking and booking.booking_type == "CONSULT" %}selected{% elif data and data.booking_type == "CONSULT" %}selected{% endif %}>Consultation</option>
+      <option value="SITE_VISIT" {% if booking and booking.booking_type == "SITE_VISIT" %}selected{% elif data and data.booking_type == "SITE_VISIT" %}selected{% endif %}>Site visit</option>
+      <option value="FOLLOWUP"   {% if booking and booking.booking_type == "FOLLOWUP" %}selected{% elif data and data.booking_type == "FOLLOWUP" %}selected{% endif %}>Follow-up</option>
+      <option value="OTHER"      {% if booking and booking.booking_type == "OTHER" %}selected{% elif data and data.booking_type == "OTHER" %}selected{% endif %}>Other</option>
+    </select>
+
+    <label for="scheduled_at">Date &amp; time</label>
+    <input type="datetime-local" name="scheduled_at" id="scheduled_at"
+           value="{% if booking %}{{ booking.scheduled_at|date:'Y-m-d\TH:i' }}{% elif data %}{{ data.scheduled_at }}{% endif %}"
+           required>
+
+    <label for="duration_minutes">Duration (minutes)</label>
+    <input type="number" name="duration_minutes" id="duration_minutes"
+           value="{% if booking %}{{ booking.duration_minutes }}{% elif data %}{{ data.duration_minutes }}{% else %}60{% endif %}" min="5">
+
+    <label for="location">Location (optional)</label>
+    <input type="text" name="location" id="location"
+           value="{% if booking %}{{ booking.location }}{% elif data %}{{ data.location }}{% endif %}">
+
+    <label for="status">Status</label>
+    <select name="status" id="status">
+      <option value="PENDING"   {% if booking and booking.status == "PENDING" %}selected{% elif data and data.status == "PENDING" %}selected{% endif %}>Pending</option>
+      <option value="CONFIRMED" {% if booking and booking.status == "CONFIRMED" %}selected{% elif data and data.status == "CONFIRMED" %}selected{% endif %}>Confirmed</option>
+      <option value="DONE"      {% if booking and booking.status == "DONE" %}selected{% elif data and data.status == "DONE" %}selected{% endif %}>Done</option>
+      <option value="CANCELLED" {% if booking and booking.status == "CANCELLED" %}selected{% elif data and data.status == "CANCELLED" %}selected{% endif %}>Cancelled</option>
+      <option value="NO_SHOW"   {% if booking and booking.status == "NO_SHOW" %}selected{% elif data and data.status == "NO_SHOW" %}selected{% endif %}>No-show</option>
+    </select>
+
+    <label for="assigned_to">Assigned to (optional)</label>
+    <select name="assigned_to" id="assigned_to">
+      <option value="">— none —</option>
+      {% for s in staff_list %}
+        <option value="{{ s.pk }}"
+          {% if booking and booking.assigned_to_id == s.pk %}selected{% elif data and data.assigned_to == s.pk|stringformat:"s" %}selected{% endif %}>
+          {{ s.full_name }} ({{ s.get_role_display }})
+        </option>
+      {% endfor %}
+    </select>
+
+    <label for="notes">Notes</label>
+    <textarea name="notes" id="notes" rows="3">{% if booking %}{{ booking.notes }}{% elif data %}{{ data.notes }}{% endif %}</textarea>
+
+    <div class="row" style="margin-top:20px;gap:12px;">
+      <button type="submit" class="btn-primary">{% if mode == "edit" %}Save{% else %}Create{% endif %}</button>
+      <a href="{% url 'staffpanel:booking_list' %}" class="btn btn-ghost">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,17 @@
+<nav class="tabbar">
+  <a href="{% url 'accounts:dashboard' %}"      class="{% if nav == 'dashboard' %}active{% endif %}">
+    <i class="fa-solid fa-gauge"></i><span>Account</span>
+  </a>
+  <a href="{% url 'accounts:my_events' %}"      class="{% if nav == 'events' %}active{% endif %}">
+    <i class="fa-solid fa-champagne-glasses"></i><span>Events</span>
+  </a>
+  <a href="{% url 'accounts:my_bookings' %}"    class="{% if nav == 'bookings' %}active{% endif %}">
+    <i class="fa-solid fa-calendar-check"></i><span>Bookings</span>
+  </a>
+  <a href="{% url 'bookings:enquiry_create' %}" class="{% if nav == 'enquire' %}active{% endif %}">
+    <i class="fa-solid fa-paper-plane"></i><span>Enquire</span>
+  </a>
+  <a href="{% url 'accounts:profile' %}"        class="{% if nav == 'profile' %}active{% endif %}">
+    <i class="fa-solid fa-user"></i><span>Profile</span>
+  </a>
+</nav>

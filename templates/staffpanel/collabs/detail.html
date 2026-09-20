@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block sidebar %}{% include "staffpanel/partials/sidebar.html" %}{% endblock %}
+{% block tabbar %}{% include "staffpanel/partials/tabbar.html" %}{% endblock %}
+{% block title %}{{ collab.partner_name }} — Collaboration{% endblock %}
+
+{% block topnav %}<a href="{% url 'staffpanel:collab_list' %}">← Collaborations</a>{% endblock %}
+
+{% block content %}
+<h2 style="margin:0 0 4px;">{{ collab.partner_name }}</h2>
+<p class="muted" style="margin:0 0 20px;">
+  {{ collab.get_partner_type_display }} ·
+  {% if collab.is_active %}<span class="pill ok">Active</span>{% else %}<span class="pill err">Inactive</span>{% endif %}
+</p>
+
+<div class="card">
+  <div class="stack">
+    <div class="row between"><span class="muted">Contact</span><span>{{ collab.contact_person|default:"—" }}</span></div>
+    <div class="row between"><span class="muted">Phone</span><span>{{ collab.phone|default:"—" }}</span></div>
+    <div class="row between"><span class="muted">Email</span><span>{{ collab.email|default:"—" }}</span></div>
+    <div class="row between"><span class="muted">Commission</span><span>{{ collab.commission_pct }}%</span></div>
+    {% if collab.notes %}
+    <div><div class="muted" style="margin-bottom:6px;">Notes</div><div style="white-space:pre-wrap;">{{ collab.notes }}</div></div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="row" style="margin-top:20px;gap:10px;flex-wrap:wrap;">
+  <a href="{% url 'staffpanel:collab_edit' collab.pk %}" class="btn btn-primary">Edit</a>
+  {% if staff and staff.is_admin or staff and staff.is_manager %}
+  <form method="post" action="{% url 'staffpanel:collab_delete' collab.pk %}"
+        onsubmit="return confirm('Delete this collaboration?');">
+    {% csrf_token %}
+    <button type="submit" class="btn-danger">Delete</button>
+  </form>
+  {% endif %}
+</div>
+{% endblock %}

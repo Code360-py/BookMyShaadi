@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Django
+db.sqlite3
+db.sqlite3.bak.*
+media/
+staticfiles/
+*.log
+
+# Local secrets
+.env
+.env.*
+SEED_CREDENTIALS.txt
+docs/SEED_CREDENTIALS.txt
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp

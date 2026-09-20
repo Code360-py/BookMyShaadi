@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block sidebar %}{% include "staffpanel/partials/sidebar.html" %}{% endblock %}
+{% block tabbar %}{% include "staffpanel/partials/tabbar.html" %}{% endblock %}
+{% block title %}{% if mode == "edit" %}Edit collaboration{% else %}New collaboration{% endif %} — {{ SITE_NAME }}{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:560px;margin:0 auto;">
+  <h2 style="margin:0 0 12px;">{% if mode == "edit" %}Edit collaboration{% else %}New collaboration{% endif %}</h2>
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+
+    <label for="partner_name">Partner name</label>
+    <input type="text" name="partner_name" id="partner_name" required
+           value="{% if collab %}{{ collab.partner_name }}{% elif data %}{{ data.partner_name }}{% endif %}">
+
+    <label for="partner_type">Type</label>
+    <select name="partner_type" id="partner_type">
+      {% for key, label in type_choices %}
+        <option value="{{ key }}"
+          {% if collab and collab.partner_type == key %}selected{% elif data and data.partner_type == key %}selected{% endif %}>
+          {{ label }}
+        </option>
+      {% endfor %}
+    </select>
+
+    <label for="contact_person">Contact person</label>
+    <input type="text" name="contact_person" id="contact_person"
+           value="{% if collab %}{{ collab.contact_person }}{% elif data %}{{ data.contact_person }}{% endif %}">
+
+    <label for="phone">Phone</label>
+    <input type="tel" name="phone" id="phone" inputmode="tel"
+           value="{% if collab %}{{ collab.phone }}{% elif data %}{{ data.phone }}{% endif %}">
+
+    <label for="email">Email</label>
+    <input type="email" name="email" id="email" inputmode="email"
+           value="{% if collab %}{{ collab.email }}{% elif data %}{{ data.email }}{% endif %}">
+
+    <label for="commission_pct">Commission %</label>
+    <input type="number" step="0.01" name="commission_pct" id="commission_pct" min="0"
+           value="{% if collab %}{{ collab.commission_pct }}{% elif data %}{{ data.commission_pct }}{% else %}0{% endif %}">
+
+    <label for="notes">Notes</label>
+    <textarea name="notes" id="notes" rows="3">{% if collab %}{{ collab.notes }}{% elif data %}{{ data.notes }}{% endif %}</textarea>
+
+    <label style="margin-top:16px;">
+      <input type="checkbox" name="is_active" style="width:auto;margin-right:8px;"
+             {% if not collab or collab.is_active %}checked{% endif %}>
+      Active
+    </label>
+
+    <div class="row" style="margin-top:20px;gap:12px;">
+      <button type="submit" class="btn-primary">{% if mode == "edit" %}Save{% else %}Create{% endif %}</button>
+      <a href="{% url 'staffpanel:collab_list' %}" class="btn btn-ghost">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

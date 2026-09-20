@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Contact — {{ SITE_NAME }}{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:560px;margin:0 auto;">
+  <h1 style="margin:0 0 12px;">Contact us</h1>
+  <p class="muted" style="margin:0 0 20px;">We'd love to hear about your event.</p>
+
+  <div class="stack">
+    {% if SITE_PHONE %}
+    <div class="row between"><span class="muted">Phone</span><a href="tel:{{ SITE_PHONE }}">{{ SITE_PHONE }}</a></div>
+    {% endif %}
+    {% if SITE_EMAIL %}
+    <div class="row between"><span class="muted">Email</span><a href="mailto:{{ SITE_EMAIL }}">{{ SITE_EMAIL }}</a></div>
+    {% endif %}
+  </div>
+
+  <div style="margin-top:24px;">
+    <a href="{% url 'bookings:enquiry_create' %}" class="btn btn-primary">Send an enquiry</a>
+  </div>
+</div>
+{% endblock %}

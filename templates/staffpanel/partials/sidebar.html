@@ -1,0 +1,69 @@
+<nav class="sidebar" id="staffSidebar">
+  <div class="side-brand">
+    <i class="fa-solid fa-heart"></i> {{ SITE_NAME }}
+    <div class="side-sub">Staff Console</div>
+  </div>
+
+  <div class="side-group">
+    <div class="side-group-label">Operations</div>
+    <a href="{% url 'staffpanel:dashboard' %}"    class="{% if nav == 'dashboard' %}active{% endif %}">
+      <i class="fa-solid fa-gauge"></i><span>Dashboard</span>
+    </a>
+    <a href="{% url 'staffpanel:enquiry_list' %}"  class="{% if nav == 'enquiries' %}active{% endif %}">
+      <i class="fa-solid fa-envelope-open-text"></i><span>Enquiries</span>
+      {% if enquiry_new_count %}<span class="badge">{{ enquiry_new_count }}</span>{% endif %}
+    </a>
+    <a href="{% url 'staffpanel:booking_list' %}"  class="{% if nav == 'bookings' %}active{% endif %}">
+      <i class="fa-solid fa-calendar-check"></i><span>Bookings</span>
+    </a>
+    <a href="{% url 'staffpanel:event_list' %}"    class="{% if nav == 'events' %}active{% endif %}">
+      <i class="fa-solid fa-champagne-glasses"></i><span>Events</span>
+    </a>
+    <a href="{% url 'staffpanel:task_list' %}"     class="{% if nav == 'tasks' %}active{% endif %}">
+      <i class="fa-solid fa-list-check"></i><span>Tasks</span>
+    </a>
+  </div>
+
+  <div class="side-group">
+    <div class="side-group-label">People</div>
+    <a href="{% url 'staffpanel:customer_list' %}" class="{% if nav == 'customers' %}active{% endif %}">
+      <i class="fa-solid fa-users"></i><span>Customers</span>
+    </a>
+    <a href="{% url 'staffpanel:vendor_list' %}"   class="{% if nav == 'vendors' %}active{% endif %}">
+      <i class="fa-solid fa-store"></i><span>Vendors</span>
+    </a>
+    <a href="{% url 'staffpanel:collab_list' %}"   class="{% if nav == 'collabs' %}active{% endif %}">
+      <i class="fa-solid fa-handshake"></i><span>Collaborations</span>
+    </a>
+  </div>
+
+  <div class="side-group">
+    <div class="side-group-label">Money</div>
+    <a href="{% url 'staffpanel:expense_list' %}"  class="{% if nav == 'expenses' %}active{% endif %}">
+      <i class="fa-solid fa-money-bill-wave"></i><span>Expenses</span>
+    </a>
+    <a href="{% url 'staffpanel:payment_list' %}"  class="{% if nav == 'payments' %}active{% endif %}">
+      <i class="fa-solid fa-credit-card"></i><span>Payments</span>
+    </a>
+  </div>
+
+  {% if current_staff and current_staff.is_admin or current_staff and current_staff.is_manager %}
+  <div class="side-group">
+    <div class="side-group-label">Admin</div>
+    <a href="{% url 'staffpanel:audit_list' %}"    class="{% if nav == 'audit' %}active{% endif %}">
+      <i class="fa-solid fa-clipboard-list"></i><span>Audit log</span>
+    </a>
+    {% if current_staff.is_admin %}
+    <a href="{% url 'staffpanel:staff_list' %}"    class="{% if nav == 'staff' %}active{% endif %}">
+      <i class="fa-solid fa-user-shield"></i><span>Staff</span>
+    </a>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <div class="side-footer">
+    <a href="{% url 'staffpanel:logout' %}" class="side-logout">
+      <i class="fa-solid fa-right-from-bracket"></i><span>Logout</span>
+    </a>
+  </div>
+</nav>

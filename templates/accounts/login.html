@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block body_class %}bare{% endblock %}
+{% block title %}Sign In — {{ SITE_NAME }}{% endblock %}
+
+{% block topnav %}
+  <a href="/">← Home</a>
+{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:420px;margin:0 auto;">
+  <h2 style="margin:0 0 6px;">Sign in</h2>
+  <p class="muted" style="margin:0 0 20px;font-size:.9rem;">Welcome back to {{ SITE_NAME }}.</p>
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ next }}">
+
+    <label for="email">Email</label>
+    <input type="email" name="email" id="email" value="{{ email|default:'' }}"
+           required autofocus autocomplete="username" inputmode="email">
+
+    <label for="password">Password</label>
+    <input type="password" name="password" id="password"
+           required autocomplete="current-password">
+
+    <div style="margin-top:22px;">
+      <button type="submit" class="btn-primary" style="width:100%;">Sign in</button>
+    </div>
+  </form>
+
+  <p class="center muted" style="margin:18px 0 0;font-size:.9rem;">
+    New here? <a href="{% url 'accounts:register' %}">Create an account</a>
+  </p>
+</div>
+{% endblock %}

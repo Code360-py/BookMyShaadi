@@ -1,0 +1,17 @@
+<nav class="tabbar">
+  <a href="{% url 'staffpanel:dashboard' %}"    class="{% if nav == 'dashboard' %}active{% endif %}">
+    <i class="fa-solid fa-gauge"></i><span>Home</span>
+  </a>
+  <a href="{% url 'staffpanel:enquiry_list' %}"  class="{% if nav == 'enquiries' %}active{% endif %}">
+    <i class="fa-solid fa-envelope-open-text"></i><span>Enquiries</span>
+  </a>
+  <a href="{% url 'staffpanel:booking_list' %}"  class="{% if nav == 'bookings' %}active{% endif %}">
+    <i class="fa-solid fa-calendar-check"></i><span>Bookings</span>
+  </a>
+  <a href="{% url 'staffpanel:event_list' %}"    class="{% if nav == 'events' %}active{% endif %}">
+    <i class="fa-solid fa-champagne-glasses"></i><span>Events</span>
+  </a>
+  <a href="{% url 'staffpanel:customer_list' %}" class="{% if nav == 'customers' %}active{% endif %}">
+    <i class="fa-solid fa-users"></i><span>Customers</span>
+  </a>
+</nav>

@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+{% block sidebar %}{% include "staffpanel/partials/sidebar.html" %}{% endblock %}
+{% block tabbar %}{% include "staffpanel/partials/tabbar.html" %}{% endblock %}
+{% block title %}Dashboard — {{ SITE_NAME }}{% endblock %}
+
+{% block content %}
+
+<div class="dash-greet">
+  <div>
+    <h2>Hi, {{ staff.full_name }} 👋</h2>
+    <p class="muted">{{ staff.get_role_display }} · {{ SITE_NAME }} staff</p>
+  </div>
+</div>
+
+<!-- Stat tiles -->
+<div class="stats-grid">
+
+  <a href="{% url 'staffpanel:enquiry_list' %}?status=NEW" class="tile accent">
+    <div class="tile-label">New enquiries</div>
+    <div class="tile-value">{{ enquiry_new_count }}</div>
+    <div class="tile-link">Open inbox →</div>
+  </a>
+
+  <a href="{% url 'staffpanel:booking_list' %}" class="tile warn">
+    <div class="tile-label">Upcoming bookings</div>
+    <div class="tile-value">{{ booking_upcoming_count }}</div>
+    <div class="tile-link">View bookings →</div>
+  </a>
+
+  <a href="{% url 'staffpanel:event_list' %}" class="tile info">
+    <div class="tile-label">Active events</div>
+    <div class="tile-value">{{ event_upcoming_count }}</div>
+    <div class="tile-link">View events →</div>
+  </a>
+
+  <a href="{% url 'staffpanel:task_list' %}?mine=1" class="tile err">
+    <div class="tile-label">Open tasks</div>
+    <div class="tile-value">{{ task_open_count }}</div>
+    <div class="tile-link">View tasks →</div>
+  </a>
+
+  <a href="{% url 'staffpanel:customer_list' %}" class="tile">
+    <div class="tile-label">Customers</div>
+    <div class="tile-value">{{ customer_count }}</div>
+    <div class="tile-link">View customers →</div>
+  </a>
+
+  <a href="{% url 'staffpanel:vendor_list' %}" class="tile">
+    <div class="tile-label">Vendors</div>
+    <div class="tile-value">{{ vendor_count }}</div>
+    <div class="tile-link">View vendors →</div>
+  </a>
+
+  <a href="{% url 'staffpanel:collab_list' %}" class="tile">
+    <div class="tile-label">Collaborations</div>
+    <div class="tile-value">{{ collab_count }}</div>
+    <div class="tile-link">View collabs →</div>
+  </a>
+
+  <a href="{% url 'staffpanel:enquiry_list' %}" class="tile">
+    <div class="tile-label">Total enquiries</div>
+    <div class="tile-value">{{ enquiry_total_count }}</div>
+    <div class="tile-link">View all →</div>
+  </a>
+
+</div>
+
+<!-- Money tiles -->
+<div class="stats-grid" style="margin-top:14px;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));">
+
+  <a href="{% url 'staffpanel:payment_list' %}?direction=IN" class="tile ok">
+    <div class="tile-label">Received</div>
+    <div class="tile-value">{{ payment_received_total }}</div>
+    <div class="tile-link">View payments →</div>
+  </a>
+
+  <a href="{% url 'staffpanel:payment_list' %}?direction=OUT" class="tile err">
+    <div class="tile-label">Paid out</div>
+    <div class="tile-value">{{ payment_paid_total }}</div>
+    <div class="tile-link">View payments →</div>
+  </a>
+
+  <a href="{% url 'staffpanel:expense_list' %}" class="tile warn">
+    <div class="tile-label">Total expenses</div>
+    <div class="tile-value">{{ expense_total }}</div>
+    <div class="tile-link">View expenses →</div>
+  </a>
+
+</div>
+
+<!-- Two-column content -->
+<div class="dash-grid">
+
+  <!-- Left column: my tasks + recent enquiries -->
+  <div style="display:flex;flex-direction:column;gap:16px;min-width:0;">
+
+    <div class="dash-section">
+      <h3>
+        <span>My open tasks</span>
+        <a href="{% url 'staffpanel:task_list' %}?mine=1">View all →</a>
+      </h3>
+      {% if my_open_tasks %}
+      <div class="dash-list">
+        {% for t in my_open_tasks %}
+        <div class="row-item">
+          <span class="primary">
+            <a href="{% url 'staffpanel:task_detail' t.pk %}">{{ t.title }}</a>
+          </span>
+          <span class="meta">
+            {{ t.event.title|truncatechars:20 }}
+            {% if t.due_date %} · {{ t.due_date|date:"d M" }}{% endif %}
+            {% if t.is_overdue %} <span class="pill err">Late</span>{% endif %}
+          </span>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="muted" style="margin:0;font-size:.9rem;">No open tasks. Nice. 🌸</p>
+      {% endif %}
+    </div>
+
+    <div class="dash-section">
+      <h3>
+        <span>New enquiries</span>
+        <a href="{% url 'staffpanel:enquiry_list' %}?status=NEW">View all →</a>
+      </h3>
+      {% if recent_enquiries %}
+      <div class="dash-list">
+        {% for e in recent_enquiries %}
+        <div class="row-item">
+          <span class="primary">
+            <a href="{% url 'staffpanel:enquiry_detail' e.pk %}">{{ e.full_name }}</a>
+          </span>
+          <span class="meta">{{ e.created_at|date:"d M H:i" }}</span>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="muted" style="margin:0;font-size:.9rem;">No new enquiries.</p>
+      {% endif %}
+    </div>
+
+  </div>
+
+  <!-- Right column: upcoming bookings -->
+  <div style="display:flex;flex-direction:column;gap:16px;min-width:0;">
+
+    <div class="dash-section">
+      <h3>
+        <span>Upcoming bookings</span>
+        <a href="{% url 'staffpanel:booking_list' %}">View all →</a>
+      </h3>
+      {% if upcoming_bookings %}
+      <div class="dash-list">
+        {% for b in upcoming_bookings %}
+        <div class="row-item">
+          <span class="primary">
+            <a href="{% url 'staffpanel:booking_detail' b.pk %}">
+              {{ b.customer.full_name }}
+            </a>
+          </span>
+          <span class="meta">{{ b.scheduled_at|date:"d M H:i" }}</span>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="muted" style="margin:0;font-size:.9rem;">No upcoming bookings.</p>
+      {% endif %}
+    </div>
+
+    <div class="dash-section">
+      <h3><span>Quick actions</span></h3>
+      <div class="dash-list">
+        <div class="row-item">
+          <span class="primary"><a href="{% url 'staffpanel:event_create' %}">+ New event</a></span>
+        </div>
+        <div class="row-item">
+          <span class="primary"><a href="{% url 'staffpanel:booking_create' %}">+ New booking</a></span>
+        </div>
+        <div class="row-item">
+          <span class="primary"><a href="{% url 'staffpanel:customer_list' %}">+ Manage customers</a></span>
+        </div>
+        <div class="row-item">
+          <span class="primary"><a href="{% url 'staffpanel:expense_create' %}">+ Record expense</a></span>
+        </div>
+        <div class="row-item">
+          <span class="primary"><a href="{% url 'staffpanel:payment_create' %}">+ Record payment</a></span>
+        </div>
+        {% if current_staff and current_staff.is_admin %}
+        <div class="row-item">
+          <span class="primary"><a href="{% url 'staffpanel:staff_list' %}">+ Manage staff</a></span>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+{% endblock %}

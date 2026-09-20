@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block sidebar %}{% include "staffpanel/partials/sidebar.html" %}{% endblock %}
+{% block tabbar %}{% include "staffpanel/partials/tabbar.html" %}{% endblock %}
+{% block title %}Booking — {{ SITE_NAME }}{% endblock %}
+
+{% block topnav %}
+  <a href="{% url 'staffpanel:booking_list' %}">← Bookings</a>
+{% endblock %}
+
+{% block content %}
+<h2 style="margin:0 0 4px;">Booking · {{ booking.get_booking_type_display }}</h2>
+<p class="muted" style="margin:0 0 20px;">
+  {{ booking.scheduled_at|date:"d M Y H:i" }} ({{ booking.duration_minutes }} min)
+  · <span class="pill {% if booking.status == 'CONFIRMED' %}ok{% elif booking.status == 'PENDING' %}warn{% elif booking.status == 'DONE' %}info{% else %}err{% endif %}">{{ booking.get_status_display }}</span>
+</p>
+
+<div class="card">
+  <div class="stack">
+    <div class="row between"><span class="muted">Customer</span>
+      <a href="{% url 'staffpanel:customer_detail' booking.customer.pk %}">{{ booking.customer.full_name }}</a>
+    </div>
+    <div class="row between"><span class="muted">Assigned to</span><span>{{ booking.assigned_to.full_name|default:"—" }}</span></div>
+    <div class="row between"><span class="muted">Location</span><span>{{ booking.location|default:"—" }}</span></div>
+    <div class="row between"><span class="muted">Created by</span>
+      <span>{{ booking.created_by.full_name|default:"—" }} · {{ booking.created_at|date:"d M Y H:i" }}</span>
+    </div>
+    {% if booking.notes %}
+    <div>
+      <div class="muted" style="margin-bottom:6px;">Notes</div>
+      <div style="white-space:pre-wrap;">{{ booking.notes }}</div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="row" style="margin-top:20px;gap:10px;flex-wrap:wrap;">
+  <a href="{% url 'staffpanel:booking_edit' booking.pk %}" class="btn btn-primary">Edit</a>
+</div>
+{% endblock %}

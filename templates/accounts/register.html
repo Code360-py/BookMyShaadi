@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block body_class %}bare{% endblock %}
+{% block title %}Create Account — {{ SITE_NAME }}{% endblock %}
+
+{% block topnav %}
+  <a href="/">← Home</a>
+{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:420px;margin:0 auto;">
+  <h2 style="margin:0 0 6px;">Create your account</h2>
+  <p class="muted" style="margin:0 0 20px;font-size:.9rem;">Start planning with {{ SITE_NAME }}.</p>
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+
+    <label for="full_name">Full name</label>
+    <input type="text" name="full_name" id="full_name" value="{{ full_name|default:'' }}" required autofocus>
+
+    <label for="email">Email</label>
+    <input type="email" name="email" id="email" value="{{ email|default:'' }}"
+           required autocomplete="username" inputmode="email">
+
+    <label for="phone">Phone (optional)</label>
+    <input type="tel" name="phone" id="phone" value="{{ phone|default:'' }}"
+           autocomplete="tel" inputmode="tel">
+
+    <label for="password1">Password</label>
+    <input type="password" name="password1" id="password1"
+           required autocomplete="new-password" minlength="8">
+
+    <label for="password2">Confirm password</label>
+    <input type="password" name="password2" id="password2"
+           required autocomplete="new-password" minlength="8">
+
+    <div style="margin-top:22px;">
+      <button type="submit" class="btn-primary" style="width:100%;">Create account</button>
+    </div>
+  </form>
+
+  <p class="center muted" style="margin:18px 0 0;font-size:.9rem;">
+    Already have an account? <a href="{% url 'accounts:login' %}">Sign in</a>
+  </p>
+</div>
+{% endblock %}

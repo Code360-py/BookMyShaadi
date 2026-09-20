@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Services — {{ SITE_NAME }}{% endblock %}
+
+{% block content %}
+<h1 style="margin:0 0 12px;">Our services</h1>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;">
+  <div class="card"><h3 style="margin:0 0 6px;">Full planning</h3><p class="muted" style="margin:0;font-size:.9rem;">End-to-end coordination from budget to final send-off.</p></div>
+  <div class="card"><h3 style="margin:0 0 6px;">Venue sourcing</h3><p class="muted" style="margin:0;font-size:.9rem;">Banquet halls, farmhouses, heritage venues, and destination spots.</p></div>
+  <div class="card"><h3 style="margin:0 0 6px;">Vendor coordination</h3><p class="muted" style="margin:0;font-size:.9rem;">Trusted caterers, decorators, photographers, makeup artists, and more.</p></div>
+  <div class="card"><h3 style="margin:0 0 6px;">Décor & design</h3><p class="muted" style="margin:0;font-size:.9rem;">Themes, florals, lighting, and stage design that match your vision.</p></div>
+  <div class="card"><h3 style="margin:0 0 6px;">On-day management</h3><p class="muted" style="margin:0;font-size:.9rem;">Guest handling, timings, and last-minute problem-solving.</p></div>
+  <div class="card"><h3 style="margin:0 0 6px;">Destination weddings</h3><p class="muted" style="margin:0;font-size:.9rem;">Logistics, stay, transport, and local vendor coordination.</p></div>
+</div>
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% block sidebar %}{% include "staffpanel/partials/sidebar.html" %}{% endblock %}
+{% block tabbar %}{% include "staffpanel/partials/tabbar.html" %}{% endblock %}
+{% block title %}{{ member.full_name }} — Staff{% endblock %}
+
+{% block topnav %}<a href="{% url 'staffpanel:staff_list' %}">← Staff</a>{% endblock %}
+
+{% block content %}
+<h2 style="margin:0 0 4px;">{{ member.full_name }}</h2>
+<p class="muted" style="margin:0 0 20px;">
+  <span class="pill
+    {% if member.role == 'ADMIN' %}err
+    {% elif member.role == 'MANAGER' %}warn
+    {% else %}info{% endif %}">{{ member.get_role_display }}</span>
+  {% if member.is_active %}<span class="pill ok">Active</span>
+  {% else %}<span class="pill err">Inactive</span>{% endif %}
+  {% if member.must_change_password %}<span class="pill warn">Must change password</span>{% endif %}
+</p>
+
+<div class="card">
+  <div class="stack">
+    <div class="row between"><span class="muted">Email</span><span>{{ member.email }}</span></div>
+    <div class="row between"><span class="muted">Phone</span><span>{{ member.phone|default:"—" }}</span></div>
+    <div class="row between"><span class="muted">Last login</span>
+      <span>{{ member.last_login|date:"d M Y H:i"|default:"—" }}</span>
+    </div>
+    <div class="row between"><span class="muted">Created</span><span>{{ member.created_at|date:"d M Y H:i" }}</span></div>
+  </div>
+</div>
+
+<div class="row" style="margin-top:20px;gap:10px;flex-wrap:wrap;">
+  <a href="{% url 'staffpanel:staff_edit' member.pk %}" class="btn btn-primary">Edit</a>
+
+  {% if member.pk != me.pk %}
+  <form method="post" action="{% url 'staffpanel:staff_reset_password' member.pk %}"
+        onsubmit="return confirm('Reset this person\'s password to a temporary one?');">
+    {% csrf_token %}
+    <button type="submit" class="btn-warn">Reset password</button>
+  </form>
+
+  <form method="post" action="{% url 'staffpanel:staff_toggle_active' member.pk %}"
+        onsubmit="return confirm('{% if member.is_active %}Deactivate{% else %}Activate{% endif %} this staff member?');">
+    {% csrf_token %}
+    <button type="submit" class="{% if member.is_active %}btn-danger{% else %}btn-primary{% endif %}">
+      {% if member.is_active %}Deactivate{% else %}Activate{% endif %}
+    </button>
+  </form>
+  {% else %}
+  <span class="muted" style="align-self:center;font-size:.85rem;">That's you — you can't deactivate or reset your own account here.</span>
+  {% endif %}
+</div>
+{% endblock %}

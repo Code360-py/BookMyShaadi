@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block sidebar %}{% include "staffpanel/partials/sidebar.html" %}{% endblock %}
+{% block tabbar %}{% include "staffpanel/partials/tabbar.html" %}{% endblock %}
+{% block title %}{{ customer.full_name }} — Customer{% endblock %}
+
+{% block topnav %}
+  <a href="{% url 'staffpanel:customer_list' %}">← Customers</a>
+{% endblock %}
+
+{% block content %}
+<h2 style="margin:0 0 4px;">{{ customer.full_name }}</h2>
+<p class="muted" style="margin:0 0 20px;">
+  Joined {{ customer.created_at|date:"d M Y" }}
+  · {% if customer.is_active %}<span class="pill ok">Active</span>{% else %}<span class="pill err">Inactive</span>{% endif %}
+  {% if customer.last_login %} · last login {{ customer.last_login|date:"d M Y H:i" }}{% endif %}
+</p>
+
+<div class="card">
+  <div class="stack">
+    <div class="row between"><span class="muted">Email</span><span>{{ customer.email }}</span></div>
+    <div class="row between"><span class="muted">Phone</span><span>{{ customer.phone|default:"—" }}</span></div>
+  </div>
+</div>
+
+{% if events %}
+<div class="card" style="margin-top:20px;">
+  <h3 style="margin:0 0 12px;font-size:1rem;">Events</h3>
+  <div class="table-wrap">
+    <table class="data">
+      <thead><tr><th>Date</th><th>Title</th><th>Type</th><th>Status</th></tr></thead>
+      <tbody>
+        {% for e in events %}
+        <tr>
+          <td><a href="{% url 'staffpanel:event_detail' e.pk %}">{{ e.date|date:"d M Y" }}</a></td>
+          <td>{{ e.title }}</td>
+          <td>{{ e.get_event_type_display }}</td>
+          <td><span class="pill {% if e.status == 'CONFIRMED' %}ok{% elif e.status == 'PLANNING' %}warn{% elif e.status == 'ONGOING' %}info{% elif e.status == 'COMPLETED' %}ok{% else %}err{% endif %}">{{ e.get_status_display }}</span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+{% if bookings %}
+<div class="card" style="margin-top:20px;">
+  <h3 style="margin:0 0 12px;font-size:1rem;">Recent bookings</h3>
+  <div class="table-wrap">
+    <table class="data">
+      <thead><tr><th>When</th><th>Type</th><th>Status</th></tr></thead>
+      <tbody>
+        {% for b in bookings %}
+        <tr>
+          <td><a href="{% url 'staffpanel:booking_detail' b.pk %}">{{ b.scheduled_at|date:"d M Y H:i" }}</a></td>
+          <td>{{ b.get_booking_type_display }}</td>
+          <td><span class="pill {% if b.status == 'CONFIRMED' %}ok{% elif b.status == 'PENDING' %}warn{% else %}info{% endif %}">{{ b.get_status_display }}</span></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+<div class="row" style="margin-top:20px;gap:10px;flex-wrap:wrap;">
+  <a href="{% url 'staffpanel:customer_edit' customer.pk %}" class="btn btn-primary">Edit</a>
+
+  {% if staff and staff.is_admin or staff and staff.is_manager %}
+  <form method="post" action="{% url 'staffpanel:customer_reset_password' customer.pk %}"
+        onsubmit="return confirm('Reset this customer\'s password to a temporary one?');">
+    {% csrf_token %}
+    <button type="submit" class="btn-warn">Reset password</button>
+  </form>
+  {% endif %}
+
+  {% if staff and staff.is_admin %}
+  <form method="post" action="{% url 'staffpanel:customer_toggle_active' customer.pk %}"
+        onsubmit="return confirm('{% if customer.is_active %}Deactivate{% else %}Activate{% endif %} this customer?');">
+    {% csrf_token %}
+    <button type="submit" class="{% if customer.is_active %}btn-danger{% else %}btn-primary{% endif %}">
+      {% if customer.is_active %}Deactivate{% else %}Activate{% endif %}
+    </button>
+  </form>
+  {% endif %}
+</div>
+{% endblock %}

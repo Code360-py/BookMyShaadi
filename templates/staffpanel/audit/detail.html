@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block sidebar %}{% include "staffpanel/partials/sidebar.html" %}{% endblock %}
+{% block tabbar %}{% include "staffpanel/partials/tabbar.html" %}{% endblock %}
+{% block title %}Audit entry — {{ SITE_NAME }}{% endblock %}
+
+{% block topnav %}<a href="{% url 'staffpanel:audit_list' %}">← Audit log</a>{% endblock %}
+
+{% block content %}
+<h2 style="margin:0 0 4px;">{{ entry.get_action_display }}</h2>
+<p class="muted" style="margin:0 0 20px;">{{ entry.created_at|date:"d M Y H:i:s" }}</p>
+
+<div class="card">
+  <div class="stack">
+    <div class="row between"><span class="muted">Actor</span>
+      <span>{% if entry.actor %}{{ entry.actor.full_name }} ({{ entry.actor.email }}){% else %}{{ entry.actor_email|default:"—" }}{% endif %}</span>
+    </div>
+    <div class="row between"><span class="muted">Model</span><span>{{ entry.model_name|default:"—" }}</span></div>
+    <div class="row between"><span class="muted">Object</span><span>{{ entry.object_repr|default:entry.object_id|default:"—" }}</span></div>
+    <div class="row between"><span class="muted">Success</span>
+      <span>{% if entry.success %}<span class="pill ok">Yes</span>{% else %}<span class="pill err">No</span>{% endif %}</span>
+    </div>
+    <div class="row between"><span class="muted">IP</span><span>{{ entry.ip|default:"—" }}</span></div>
+    <div class="row between"><span class="muted">User agent</span><span style="font-size:.8rem;">{{ entry.user_agent|default:"—" }}</span></div>
+    {% if entry.detail %}
+    <div><div class="muted" style="margin-bottom:6px;">Detail</div>
+      <div style="white-space:pre-wrap;font-family:monospace;font-size:.85rem;">{{ entry.detail }}</div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

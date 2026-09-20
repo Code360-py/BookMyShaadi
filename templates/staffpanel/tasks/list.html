@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block sidebar %}{% include "staffpanel/partials/sidebar.html" %}{% endblock %}
+{% block tabbar %}{% include "staffpanel/partials/tabbar.html" %}{% endblock %}
+{% block title %}Tasks — {{ SITE_NAME }}{% endblock %}
+
+{% block content %}
+<div class="row between" style="margin-bottom:16px;">
+  <h2 style="margin:0;">Tasks</h2>
+  <a href="{% url 'staffpanel:task_create' %}" class="btn btn-primary">+ New</a>
+</div>
+
+<form method="get" class="row" style="margin-bottom:16px;gap:8px;">
+  <input type="text" name="q" value="{{ q }}" placeholder="Search title, event, assignee" style="flex:1;min-width:200px;">
+  {% if mine %}<input type="hidden" name="mine" value="1">{% endif %}
+  <button type="submit">Search</button>
+</form>
+
+<div class="row" style="margin-bottom:14px;gap:8px;flex-wrap:wrap;">
+  <a href="{% url 'staffpanel:task_list' %}" class="pill {% if not status and not mine %}info{% endif %}">All</a>
+  {% for key, label in status_choices %}
+    <a href="{% url 'staffpanel:task_list' %}?status={{ key }}{% if mine %}&mine=1{% endif %}" class="pill {% if status == key %}info{% endif %}">{{ label }}</a>
+  {% endfor %}
+  <a href="{% url 'staffpanel:task_list' %}?mine=1" class="pill {% if mine %}info{% endif %}">Assigned to me</a>
+</div>
+
+{% if tasks %}
+<div class="table-wrap">
+  <table class="data">
+    <thead>
+      <tr>
+        <th>Done</th>
+        <th>Title</th>
+        <th>Event</th>
+        <th>Assigned</th>
+        <th>Due</th>
+        <th>Priority</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for t in tasks %}
+      <tr>
+        <td>
+          <form method="post" action="{% url 'staffpanel:task_toggle_status' t.pk %}" style="margin:0;">
+            {% csrf_token %}
+            <button type="submit" class="pill {% if t.status == 'COMPLETED' %}ok{% else %}{% endif %}" style="cursor:pointer;padding:4px 8px;">
+              {% if t.status == 'COMPLETED' %}✓{% else %}○{% endif %}
+            </button>
+          </form>
+        </td>
+        <td><a href="{% url 'staffpanel:task_detail' t.pk %}">{{ t.title }}</a></td>
+        <td><a href="{% url 'staffpanel:event_detail' t.event.pk %}">{{ t.event.title|truncatechars:30 }}</a></td>
+        <td>{{ t.assigned_to.full_name|default:"—" }}</td>
+        <td>
+          {% if t.due_date %}
+            {{ t.due_date|date:"d M" }}
+            {% if t.is_overdue %}<span class="pill err">Overdue</span>{% endif %}
+          {% else %}—{% endif %}
+        </td>
+        <td>
+          <span class="pill {% if t.priority == 'HIGH' %}err{% elif t.priority == 'MED' %}warn{% endif %}">
+            {{ t.get_priority_display }}
+          </span>
+        </td>
+        <td>
+          <span class="pill {% if t.status == 'COMPLETED' %}ok{% elif t.status == 'ONGOING' %}info{% elif t.status == 'CANCELLED' %}err{% endif %}">
+            {{ t.get_status_display }}
+          </span>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="card"><p class="muted" style="margin:0;">No tasks.</p></div>
+{% endif %}
+{% endblock %}

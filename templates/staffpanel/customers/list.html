@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block sidebar %}{% include "staffpanel/partials/sidebar.html" %}{% endblock %}
+{% block tabbar %}{% include "staffpanel/partials/tabbar.html" %}{% endblock %}
+{% block title %}Customers — {{ SITE_NAME }}{% endblock %}
+
+{% block content %}
+<h2 style="margin:0 0 16px;">Customers</h2>
+
+<form method="get" class="row" style="margin-bottom:16px;gap:8px;">
+  <input type="text" name="q" value="{{ q }}" placeholder="Search name, email, phone" style="flex:1;min-width:200px;">
+  <button type="submit">Search</button>
+</form>
+
+{% if customers %}
+<div class="table-wrap">
+  <table class="data">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Phone</th>
+        <th>Joined</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for c in customers %}
+      <tr>
+        <td><a href="{% url 'staffpanel:customer_detail' c.pk %}">{{ c.full_name }}</a></td>
+        <td>{{ c.email }}</td>
+        <td>{{ c.phone|default:"—" }}</td>
+        <td>{{ c.created_at|date:"d M Y" }}</td>
+        <td>
+          {% if c.is_active %}<span class="pill ok">Active</span>
+          {% else %}<span class="pill err">Inactive</span>{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="card"><p class="muted" style="margin:0;">No customers.</p></div>
+{% endif %}
+{% endblock %}

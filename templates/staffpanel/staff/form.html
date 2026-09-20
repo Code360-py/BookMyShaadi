@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block sidebar %}{% include "staffpanel/partials/sidebar.html" %}{% endblock %}
+{% block tabbar %}{% include "staffpanel/partials/tabbar.html" %}{% endblock %}
+{% block title %}{% if mode == "edit" %}Edit staff{% else %}New staff{% endif %} — {{ SITE_NAME }}{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:520px;margin:0 auto;">
+  <h2 style="margin:0 0 12px;">{% if mode == "edit" %}Edit staff{% else %}New staff{% endif %}</h2>
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+
+    <label for="full_name">Full name</label>
+    <input type="text" name="full_name" id="full_name" required
+           value="{% if member %}{{ member.full_name }}{% elif data %}{{ data.full_name }}{% endif %}">
+
+    <label for="email">Email</label>
+    <input type="email" name="email" id="email" required
+           value="{% if member %}{{ member.email }}{% elif data %}{{ data.email }}{% endif %}"
+           {% if mode == "edit" %}disabled{% endif %}>
+    {% if mode == "edit" %}
+    <p class="muted" style="font-size:.8rem;margin:4px 0 0;">Email cannot be changed once created.</p>
+    {% endif %}
+
+    <label for="phone">Phone</label>
+    <input type="tel" name="phone" id="phone" inputmode="tel"
+           value="{% if member %}{{ member.phone }}{% elif data %}{{ data.phone }}{% endif %}">
+
+    <label for="role">Role</label>
+    <select name="role" id="role">
+      {% for key, label in role_choices %}
+        <option value="{{ key }}"
+          {% if member and member.role == key %}selected{% elif data and data.role == key %}selected{% elif not member and not data and key == "STAFF" %}selected{% endif %}>
+          {{ label }}
+        </option>
+      {% endfor %}
+    </select>
+
+    {% if mode == "create" %}
+    <label for="password">Initial password</label>
+    <input type="password" name="password" id="password" required minlength="8" autocomplete="new-password">
+    <p class="muted" style="font-size:.8rem;margin:4px 0 0;">Share it securely. They can change it after first login.</p>
+    {% endif %}
+
+    <div class="row" style="margin-top:20px;gap:12px;">
+      <button type="submit" class="btn-primary">{% if mode == "edit" %}Save{% else %}Create{% endif %}</button>
+      <a href="{% url 'staffpanel:staff_list' %}" class="btn btn-ghost">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

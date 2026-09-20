@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block sidebar %}{% include "staffpanel/partials/sidebar.html" %}{% endblock %}
+{% block tabbar %}{% include "staffpanel/partials/tabbar.html" %}{% endblock %}
+{% block title %}Expense — {{ SITE_NAME }}{% endblock %}
+
+{% block topnav %}<a href="{% url 'staffpanel:expense_list' %}">← Expenses</a>{% endblock %}
+
+{% block content %}
+<h2 style="margin:0 0 4px;">{{ expense.get_category_display }}</h2>
+<p class="muted" style="margin:0 0 20px;">
+  {{ expense.amount }} · {{ expense.date|date:"d M Y" }} ·
+  <span class="pill {% if expense.status == 'PAID' %}ok{% elif expense.status == 'PARTIAL' %}warn{% else %}info{% endif %}">{{ expense.get_status_display }}</span>
+</p>
+
+<div class="card">
+  <div class="stack">
+    <div class="row between"><span class="muted">Event</span>
+      <a href="{% url 'staffpanel:event_detail' expense.event.pk %}">{{ expense.event.title }}</a></div>
+    <div class="row between"><span class="muted">Vendor</span><span>{{ expense.vendor.name|default:"—" }}</span></div>
+    <div class="row between"><span class="muted">Description</span><span>{{ expense.description|default:"—" }}</span></div>
+    <div class="row between"><span class="muted">Created by</span>
+      <span>{% if expense.created_by %}{{ expense.created_by.full_name }} · {% endif %}{{ expense.created_at|date:"d M Y H:i" }}</span>
+    </div>
+    {% if expense.notes %}
+    <div><div class="muted" style="margin-bottom:6px;">Notes</div><div style="white-space:pre-wrap;">{{ expense.notes }}</div></div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="row" style="margin-top:20px;gap:10px;flex-wrap:wrap;">
+  <a href="{% url 'staffpanel:expense_edit' expense.pk %}" class="btn btn-primary">Edit</a>
+  {% if staff and staff.is_admin or staff and staff.is_manager %}
+  <form method="post" action="{% url 'staffpanel:expense_delete' expense.pk %}"
+        onsubmit="return confirm('Delete this expense?');">
+    {% csrf_token %}
+    <button type="submit" class="btn-danger">Delete</button>
+  </form>
+  {% endif %}
+</div>
+{% endblock %}

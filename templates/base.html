@@ -1,0 +1,135 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<link rel="manifest" href="/static/manifest.json">
+<meta name="theme-color" content="#0a0a0f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="BookMyShaadi">
+<meta name="color-scheme" content="dark">
+<title>{% block title %}{{ SITE_NAME }}{% endblock %}</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+<body class="{% block body_class %}{% endblock %}">
+
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeSidebar()"></div>
+
+{% block sidebar %}{% endblock %}
+{% if request.session.customer_id and not request.session.staff_id %}
+  {% include "accounts/partials/sidebar.html" %}
+{% endif %}
+
+{% block topbar %}
+<div class="topbar">
+  {% if request.session.staff_id or request.session.customer_id %}
+  <button type="button" class="nav-toggle" onclick="toggleSidebar()" aria-label="Menu">
+    <i class="fa-solid fa-bars"></i>
+  </button>
+  {% else %}
+  <span class="nav-toggle" style="visibility:hidden;" aria-hidden="true">
+    <i class="fa-solid fa-bars"></i>
+  </span>
+  {% endif %}
+
+  <a href="/" class="brand">{{ SITE_NAME }}</a>
+
+  <div class="links">
+    {% block topnav %}
+      {% if request.session.staff_id %}
+        <a href="{% url 'staffpanel:logout' %}" title="Logout"><i class="fa-solid fa-right-from-bracket"></i></a>
+      {% elif request.session.customer_id %}
+        <a href="{% url 'accounts:profile' %}" title="Profile"><i class="fa-solid fa-user"></i></a>
+        <a href="{% url 'accounts:logout' %}" title="Logout"><i class="fa-solid fa-right-from-bracket"></i></a>
+      {% else %}
+        <a href="{% url 'core:services' %}" class="hide-sm">Services</a>
+        <a href="{% url 'core:packages' %}" class="hide-sm">Packages</a>
+        <a href="{% url 'core:vendors' %}" class="hide-sm">Vendors</a>
+        <a href="/login/">Sign in</a>
+      {% endif %}
+    {% endblock %}
+  </div>
+</div>
+{% endblock %}
+
+{% if flashes %}
+<div class="flashes" id="flashes">
+  {% for f in flashes %}
+    <div class="flash {{ f.level }}">{{ f.message }}</div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<div class="page">
+  {% block content %}{% endblock %}
+</div>
+
+{% block tabbar %}{% endblock %}
+
+<footer class="footer">
+  &copy; {% now "Y" %} {{ SITE_NAME }} · {{ SITE_TAGLINE }}
+  &nbsp;·&nbsp;
+  <a href="/login/?tab=staff" style="color:var(--text-mute);">Staff sign in</a>
+</footer>
+
+<script>
+  setTimeout(function(){
+    var c = document.getElementById('flashes');
+    if (!c) return;
+    c.querySelectorAll('.flash').forEach(function(el){
+      el.style.transition = 'opacity .5s ease, transform .5s ease';
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(-10px)';
+      setTimeout(function(){ el.remove(); }, 600);
+    });
+  }, 4000);
+
+  function toggleSidebar() {
+    var sb = document.querySelector('.sidebar');
+    var ov = document.getElementById('drawerOverlay');
+    if (!sb) return;
+    var isOpen = sb.classList.toggle('open');
+    if (ov) ov.classList.toggle('open', isOpen);
+  }
+  function closeSidebar() {
+    var sb = document.querySelector('.sidebar');
+    var ov = document.getElementById('drawerOverlay');
+    if (sb) sb.classList.remove('open');
+    if (ov) ov.classList.remove('open');
+  }
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeSidebar();
+  });
+</script>
+
+<script>
+  // Portrait lock — best effort. Works on PWA / fullscreen; ignored in browser tabs.
+  function lockPortrait() {
+    var el = document.documentElement;
+    if (el.requestFullscreen && screen.orientation && screen.orientation.lock) {
+      screen.orientation.lock('portrait').catch(function(){});
+    }
+  }
+  // Try on load
+  document.addEventListener('DOMContentLoaded', lockPortrait);
+  // Retry on first interaction (browsers require a user gesture)
+  document.addEventListener('click', function onFirst(){
+    lockPortrait();
+    document.removeEventListener('click', onFirst);
+  }, { once: true });
+</script>
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/static/sw.js').catch(function(){});
+  }
+</script>
+</body>
+
+</html>

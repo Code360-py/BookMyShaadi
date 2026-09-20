@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block sidebar %}{% include "staffpanel/partials/sidebar.html" %}{% endblock %}
+{% block tabbar %}{% include "staffpanel/partials/tabbar.html" %}{% endblock %}
+{% block title %}Payments — {{ SITE_NAME }}{% endblock %}
+
+{% block content %}
+<div class="row between" style="margin-bottom:16px;">
+  <h2 style="margin:0;">Payments</h2>
+  <a href="{% url 'staffpanel:payment_create' %}" class="btn btn-primary">+ New</a>
+</div>
+
+<form method="get" class="row" style="margin-bottom:16px;gap:8px;">
+  <input type="text" name="q" value="{{ q }}" placeholder="Search reference, event, vendor" style="flex:1;min-width:200px;">
+  {% if status %}<input type="hidden" name="status" value="{{ status }}">{% endif %}
+  {% if direction %}<input type="hidden" name="direction" value="{{ direction }}">{% endif %}
+  <button type="submit">Search</button>
+</form>
+
+<div class="row" style="margin-bottom:14px;gap:8px;flex-wrap:wrap;">
+  <a href="{% url 'staffpanel:payment_list' %}" class="pill {% if not direction and not status %}info{% endif %}">All</a>
+  {% for key, label in direction_choices %}
+    <a href="{% url 'staffpanel:payment_list' %}?direction={{ key }}" class="pill {% if direction == key %}info{% endif %}">{{ label }}</a>
+  {% endfor %}
+</div>
+
+<div class="row" style="margin-bottom:14px;gap:8px;flex-wrap:wrap;">
+  {% for key, label in status_choices %}
+    <a href="{% url 'staffpanel:payment_list' %}?status={{ key }}{% if direction %}&direction={{ direction }}{% endif %}" class="pill {% if status == key %}info{% endif %}">{{ label }}</a>
+  {% endfor %}
+</div>
+
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:14px;">
+  <div class="card">
+    <div class="muted" style="font-size:.8rem;">Received (cleared)</div>
+    <div style="font-size:1.6rem;font-weight:700;color:#34d399;">{{ received }}</div>
+  </div>
+  <div class="card">
+    <div class="muted" style="font-size:.8rem;">Paid out (cleared)</div>
+    <div style="font-size:1.6rem;font-weight:700;color:#f43f5e;">{{ paid }}</div>
+  </div>
+</div>
+
+{% if payments %}
+<div class="table-wrap">
+  <table class="data">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Direction</th>
+        <th>Event</th>
+        <th>Vendor</th>
+        <th>Amount</th>
+        <th>Method</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in payments %}
+      <tr>
+        <td><a href="{% url 'staffpanel:payment_detail' p.pk %}">{{ p.date|date:"d M Y" }}</a></td>
+        <td>
+          {% if p.direction == "IN" %}<span class="pill ok">IN</span>
+          {% else %}<span class="pill err">OUT</span>{% endif %}
+        </td>
+        <td>{{ p.event.title|truncatechars:28 }}</td>
+        <td>{{ p.vendor.name|default:"—" }}</td>
+        <td>{{ p.amount }}</td>
+        <td>{{ p.get_method_display }}</td>
+        <td><span class="pill {% if p.status == 'CLEARED' %}ok{% elif p.status == 'PENDING' %}warn{% else %}err{% endif %}">{{ p.get_status_display }}</span></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="card"><p class="muted" style="margin:0;">No payments yet.</p></div>
+{% endif %}
+{% endblock %}

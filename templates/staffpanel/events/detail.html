@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+{% block sidebar %}{% include "staffpanel/partials/sidebar.html" %}{% endblock %}
+{% block tabbar %}{% include "staffpanel/partials/tabbar.html" %}{% endblock %}
+{% block title %}{{ event.title }} — Event{% endblock %}
+
+{% block topnav %}<a href="{% url 'staffpanel:event_list' %}">← Events</a>{% endblock %}
+
+{% block content %}
+<h2 style="margin:0 0 4px;">{{ event.title }}</h2>
+<p class="muted" style="margin:0 0 20px;">
+  {{ event.get_event_type_display }}
+  · {{ event.date|date:"d M Y" }}{% if event.end_date %} – {{ event.end_date|date:"d M Y" }}{% endif %}
+  · {{ event.location }}
+  · <span class="pill {% if event.status == 'CONFIRMED' %}ok{% elif event.status == 'PLANNING' %}warn{% elif event.status == 'ONGOING' %}info{% elif event.status == 'COMPLETED' %}ok{% else %}err{% endif %}">{{ event.get_status_display }}</span>
+</p>
+
+<!-- Stat cards -->
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px;">
+  <div class="card">
+    <div class="muted" style="font-size:.75rem;">Budget</div>
+    <div style="font-size:1.4rem;font-weight:700;">{{ event.budget }}</div>
+  </div>
+  <div class="card">
+    <div class="muted" style="font-size:.75rem;">Expenses</div>
+    <div style="font-size:1.4rem;font-weight:700;color:#f43f5e;">{{ total_expenses }}</div>
+  </div>
+  <div class="card">
+    <div class="muted" style="font-size:.75rem;">Received</div>
+    <div style="font-size:1.4rem;font-weight:700;color:#34d399;">{{ total_received }}</div>
+  </div>
+  <div class="card">
+    <div class="muted" style="font-size:.75rem;">Paid out</div>
+    <div style="font-size:1.4rem;font-weight:700;color:#fb923c;">{{ total_paid }}</div>
+  </div>
+  <div class="card">
+    <div class="muted" style="font-size:.75rem;">Open tasks</div>
+    <div style="font-size:1.4rem;font-weight:700;">{{ open_task_count }}</div>
+  </div>
+</div>
+
+<!-- Info card -->
+<div class="card">
+  <div class="stack">
+    <div class="row between"><span class="muted">Customer</span>
+      <a href="{% url 'staffpanel:customer_detail' event.customer.pk %}">{{ event.customer.full_name }}</a>
+    </div>
+    {% if event.bride_name or event.groom_name %}
+    <div class="row between"><span class="muted">Couple</span>
+      <span>{{ event.bride_name }} &amp; {{ event.groom_name }}</span>
+    </div>
+    {% endif %}
+    <div class="row between"><span class="muted">Guests</span><span>{{ event.guest_count|default:"—" }}</span></div>
+    <div class="row between"><span class="muted">Created</span>
+      <span>{% if event.created_by %}{{ event.created_by.full_name }} · {% endif %}{{ event.created_at|date:"d M Y H:i" }}</span>
+    </div>
+    {% if event.notes %}
+    <div><div class="muted" style="margin-bottom:6px;">Notes</div><div style="white-space:pre-wrap;">{{ event.notes }}</div></div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Actions -->
+<div class="row" style="margin-top:16px;gap:10px;flex-wrap:wrap;">
+  <a href="{% url 'staffpanel:event_edit' event.pk %}" class="btn btn-primary">Edit event</a>
+  {% if staff and staff.is_admin or staff and staff.is_manager %}
+  <form method="post" action="{% url 'staffpanel:event_delete' event.pk %}"
+        onsubmit="return confirm('Delete this event permanently?');">
+    {% csrf_token %}
+    <button type="submit" class="btn-danger">Delete</button>
+  </form>
+  {% endif %}
+</div>
+
+<!-- Tabs -->
+<div class="card" style="margin-top:24px;padding:0;">
+  <div class="row" style="padding:12px 16px 0;gap:8px;flex-wrap:wrap;border-bottom:1px solid rgba(255,255,255,.08);">
+    <a href="#tasks"    class="pill info" onclick="showTab('tasks', this); return false;">Tasks ({{ tasks|length }})</a>
+    <a href="#expenses" class="pill"      onclick="showTab('expenses', this); return false;">Expenses ({{ expenses|length }})</a>
+    <a href="#payments" class="pill"      onclick="showTab('payments', this); return false;">Payments ({{ payments|length }})</a>
+  </div>
+
+  <!-- Tasks tab -->
+  <div id="tab-tasks" class="tabpane" style="padding:16px;">
+    <div class="row between" style="margin-bottom:12px;">
+      <h3 style="margin:0;font-size:1rem;">Tasks</h3>
+      <a href="{% url 'staffpanel:task_create' %}?event={{ event.pk }}" class="btn btn-primary btn-sm">+ Add task</a>
+    </div>
+    {% if tasks %}
+    <div class="table-wrap">
+      <table class="data">
+        <thead><tr><th>Done</th><th>Title</th><th>Assigned</th><th>Due</th><th>Priority</th><th>Status</th></tr></thead>
+        <tbody>
+        {% for t in tasks %}
+          <tr>
+            <td>
+              <form method="post" action="{% url 'staffpanel:task_toggle_status' t.pk %}" style="margin:0;">
+                {% csrf_token %}
+                <button type="submit" class="pill {% if t.status == 'COMPLETED' %}ok{% endif %}" style="cursor:pointer;padding:3px 8px;">
+                  {% if t.status == 'COMPLETED' %}✓{% else %}○{% endif %}
+                </button>
+              </form>
+            </td>
+            <td><a href="{% url 'staffpanel:task_detail' t.pk %}">{{ t.title }}</a></td>
+            <td>{{ t.assigned_to.full_name|default:"—" }}</td>
+            <td>{{ t.due_date|date:"d M"|default:"—" }}{% if t.is_overdue %} <span class="pill err">Late</span>{% endif %}</td>
+            <td><span class="pill {% if t.priority == 'HIGH' %}err{% elif t.priority == 'MED' %}warn{% endif %}">{{ t.get_priority_display }}</span></td>
+            <td><span class="pill {% if t.status == 'COMPLETED' %}ok{% elif t.status == 'ONGOING' %}info{% elif t.status == 'CANCELLED' %}err{% endif %}">{{ t.get_status_display }}</span></td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="muted">No tasks yet.</p>
+    {% endif %}
+  </div>
+
+  <!-- Expenses tab -->
+  <div id="tab-expenses" class="tabpane" style="padding:16px;display:none;">
+    <div class="row between" style="margin-bottom:12px;">
+      <h3 style="margin:0;font-size:1rem;">Expenses</h3>
+      <a href="{% url 'staffpanel:expense_create' %}?event={{ event.pk }}" class="btn btn-primary btn-sm">+ Add expense</a>
+    </div>
+    {% if expenses %}
+    <div class="table-wrap">
+      <table class="data">
+        <thead><tr><th>Date</th><th>Category</th><th>Vendor</th><th>Amount</th><th>Status</th></tr></thead>
+        <tbody>
+        {% for e in expenses %}
+          <tr>
+            <td><a href="{% url 'staffpanel:expense_detail' e.pk %}">{{ e.date|date:"d M" }}</a></td>
+            <td>{{ e.get_category_display }}</td>
+            <td>{{ e.vendor.name|default:"—" }}</td>
+            <td>{{ e.amount }}</td>
+            <td><span class="pill {% if e.status == 'PAID' %}ok{% elif e.status == 'PARTIAL' %}warn{% else %}info{% endif %}">{{ e.get_status_display }}</span></td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="muted">No expenses yet.</p>
+    {% endif %}
+  </div>
+
+  <!-- Payments tab -->
+  <div id="tab-payments" class="tabpane" style="padding:16px;display:none;">
+    <div class="row between" style="margin-bottom:12px;">
+      <h3 style="margin:0;font-size:1rem;">Payments</h3>
+      <a href="{% url 'staffpanel:payment_create' %}?event={{ event.pk }}" class="btn btn-primary btn-sm">+ Add payment</a>
+    </div>
+    {% if payments %}
+    <div class="table-wrap">
+      <table class="data">
+        <thead><tr><th>Date</th><th>Direction</th><th>Vendor</th><th>Amount</th><th>Method</th><th>Status</th></tr></thead>
+        <tbody>
+        {% for p in payments %}
+          <tr>
+            <td><a href="{% url 'staffpanel:payment_detail' p.pk %}">{{ p.date|date:"d M" }}</a></td>
+            <td>{% if p.direction == "IN" %}<span class="pill ok">IN</span>{% else %}<span class="pill err">OUT</span>{% endif %}</td>
+            <td>{{ p.vendor.name|default:"—" }}</td>
+            <td>{{ p.amount }}</td>
+            <td>{{ p.get_method_display }}</td>
+            <td><span class="pill {% if p.status == 'CLEARED' %}ok{% elif p.status == 'PENDING' %}warn{% else %}err{% endif %}">{{ p.get_status_display }}</span></td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <p class="muted">No payments yet.</p>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+function showTab(name, el) {
+  document.querySelectorAll('.tabpane').forEach(function(p){ p.style.display = 'none'; });
+  document.getElementById('tab-' + name).style.display = 'block';
+  document.querySelectorAll('.pill[onclick]').forEach(function(a){ a.classList.remove('info'); });
+  el.classList.add('info');
+}
+</script>
+{% endblock %}

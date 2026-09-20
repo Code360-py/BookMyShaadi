@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block body_class %}has-tabbar{% endblock %}
+{% block sidebar %}{% include "accounts/partials/sidebar.html" %}{% endblock %}
+{% block tabbar %}{% include "accounts/partials/tabbar.html" %}{% endblock %}
+{% block title %}Enquire — {{ SITE_NAME }}{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width:560px;margin:0 auto;">
+  <h2 style="margin:0 0 6px;">Tell us about your event</h2>
+  <p class="muted" style="margin:0 0 20px;font-size:.9rem;">
+    Share a few details and our team will reach out within 24 hours.
+  </p>
+
+  <form method="post" novalidate>
+    {% csrf_token %}
+
+    <label for="full_name">Your name</label>
+    <input type="text" name="full_name" id="full_name"
+           value="{{ data.full_name|default:'' }}" required autofocus>
+
+    <label for="email">Email</label>
+    <input type="email" name="email" id="email"
+           value="{{ data.email|default:'' }}" required inputmode="email" autocomplete="email">
+
+    <label for="phone">Phone</label>
+    <input type="tel" name="phone" id="phone"
+           value="{{ data.phone|default:'' }}" required inputmode="tel" autocomplete="tel">
+
+    <label for="event_type">Event type</label>
+    <select name="event_type" id="event_type">
+      <option value="WEDDING"    {% if data.event_type == "WEDDING" %}selected{% endif %}>Wedding</option>
+      <option value="ENGAGEMENT" {% if data.event_type == "ENGAGEMENT" %}selected{% endif %}>Engagement</option>
+      <option value="BIRTHDAY"   {% if data.event_type == "BIRTHDAY" %}selected{% endif %}>Birthday</option>
+      <option value="CORPORATE"  {% if data.event_type == "CORPORATE" %}selected{% endif %}>Corporate</option>
+      <option value="OTHER"      {% if data.event_type == "OTHER" %}selected{% endif %}>Other</option>
+    </select>
+
+    <label for="event_date">Preferred date (optional)</label>
+    <input type="date" name="event_date" id="event_date"
+           value="{{ data.event_date|default:'' }}">
+
+    <label for="guests">Approx. guests (optional)</label>
+    <input type="number" name="guests" id="guests"
+           value="{{ data.guests|default:'' }}" min="0" inputmode="numeric">
+
+    <label for="budget">Budget (optional)</label>
+    <input type="number" step="0.01" name="budget" id="budget"
+           value="{{ data.budget|default:'' }}" min="0" inputmode="decimal">
+
+    <label for="message">Anything else?</label>
+    <textarea name="message" id="message" rows="4">{{ data.message|default:'' }}</textarea>
+
+    <div style="margin-top:22px;">
+      <button type="submit" class="btn-primary" style="width:100%;">Submit enquiry</button>
+    </div>
+  </form>
+</div>
+{% endblock %}
