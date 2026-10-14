@@ -14,8 +14,8 @@ Built with Django, plain models, custom PBKDF2 hashing, session-based auth for t
 - Django 5.0+
 
 ## Setup
-
-git clone <your-repo-url>
+’’’bash
+git clone https://github.com/Code360-py/BookMyShaadi.git
 cd BookMyShaadi
 python -m venv .venv
 source .venv/bin/activate
@@ -24,7 +24,7 @@ python manage.py migrate
 python manage.py seed_packages
 python manage.py seed_demo
 python manage.py runserver
-
+’’’
 Open http://127.0.0.1:8000/
 
 ## Demo credentials
