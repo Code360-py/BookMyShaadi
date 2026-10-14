@@ -105,6 +105,10 @@ class Package(models.Model):
     def feature_list(self):
         return [line.strip() for line in (self.features or "").splitlines() if line.strip()]
 
+    @property
+    def formatted_price(self):
+        return f"₹{self.price_from:,.0f}"
+
 
 class GalleryImage(models.Model):
     """Public gallery."""

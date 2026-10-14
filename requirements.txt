@@ -1,4 +1,4 @@
-django
+Django>=5.2,<6.0
 tzdata
 pytz
 pillow

@@ -7,7 +7,7 @@
 <div class="card" style="max-width:640px;margin:0 auto;">
   <h1 style="margin:0 0 4px;">{{ package.name }}</h1>
   <p class="muted" style="margin:0 0 16px;">{{ package.tagline }}</p>
-  <div style="font-size:1.5rem;font-weight:700;margin-bottom:20px;">From {{ package.price_from }}</div>
+  <div style="font-size:1.5rem;font-weight:700;margin-bottom:20px;">From {{ package.formatted_price }}</div>
   {% if package.description %}
   <p style="white-space:pre-wrap;">{{ package.description }}</p>
   {% endif %}

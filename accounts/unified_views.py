@@ -6,6 +6,7 @@ Single URL: /login/ with a tab switch for role.
 from django.conf import settings
 from django.shortcuts import redirect, render
 from django.utils import timezone
+from urllib.parse import urlsplit
 
 from .auth import (
     get_current_customer,
@@ -21,7 +22,14 @@ from .models import Customer, Staff
 
 def _safe_next(request, default: str) -> str:
     nxt = request.GET.get("next") or request.POST.get("next") or ""
-    if nxt.startswith("/") and not nxt.startswith("//"):
+    parts = urlsplit(nxt)
+    if (
+        nxt.startswith("/")
+        and not nxt.startswith("//")
+        and not parts.scheme
+        and not parts.netloc
+        and "\\" not in nxt
+    ):
         return nxt
     return default
 

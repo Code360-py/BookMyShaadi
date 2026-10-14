@@ -1,5 +1,9 @@
 """Customer-side views: register, login, logout, dashboard, my bookings/events."""
 
+from urllib.parse import urlsplit
+
+from django.core.exceptions import ValidationError
+from django.core.validators import EmailValidator
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .auth import (
@@ -14,7 +18,13 @@ from .models import Customer
 
 def _safe_next(request, default: str = "/account/") -> str:
     nxt = request.GET.get("next") or request.POST.get("next") or ""
-    if nxt.startswith("/") and not nxt.startswith("//"):
+    if not nxt.startswith("/") or nxt.startswith("//") or "\\" in nxt:
+        return default
+    try:
+        parts = urlsplit(nxt)
+    except ValueError:
+        return default
+    if not parts.scheme and not parts.netloc:
         return nxt
     return default
 
@@ -31,10 +41,14 @@ def register(request):
         p2 = request.POST.get("password2") or ""
 
         errors = []
-        if not email or "@" not in email:
+        try:
+            EmailValidator()(email)
+        except ValidationError:
             errors.append("A valid email is required.")
-        if not full_name:
-            errors.append("Full name is required.")
+        if not full_name or len(full_name) > 255:
+            errors.append("Enter a name with 1 to 255 characters.")
+        if len(phone) > 20:
+            errors.append("Phone number must be 20 characters or fewer.")
         if len(p1) < 8:
             errors.append("Password must be at least 8 characters.")
         if p1 != p2:
@@ -157,11 +171,18 @@ def profile(request):
     customer = get_current_customer(request)
 
     if request.method == "POST":
-        customer.full_name = (request.POST.get("full_name") or customer.full_name).strip()
-        customer.phone = (request.POST.get("phone") or "").strip()
-        customer.save(update_fields=["full_name", "phone", "updated_at"])
-        add_flash(request, "Profile updated.", "success")
-        return redirect("accounts:profile")
+        full_name = (request.POST.get("full_name") or "").strip()
+        phone = (request.POST.get("phone") or "").strip()
+        if not full_name or len(full_name) > 255:
+            add_flash(request, "Enter a name with 1 to 255 characters.", "error")
+        elif len(phone) > 20:
+            add_flash(request, "Phone number must be 20 characters or fewer.", "error")
+        else:
+            customer.full_name = full_name
+            customer.phone = phone
+            customer.save(update_fields=["full_name", "phone", "updated_at"])
+            add_flash(request, "Profile updated.", "success")
+            return redirect("accounts:profile")
 
     return render(request, "accounts/profile.html", {"customer": customer, "nav": "profile"})
 

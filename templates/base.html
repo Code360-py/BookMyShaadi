@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <link rel="manifest" href="/static/manifest.json">
 <meta name="theme-color" content="#0a0a0f">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -18,7 +18,7 @@
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
 <link rel="stylesheet" href="{% static 'css/app.css' %}">
 </head>
-<body class="{% block body_class %}{% endblock %}">
+<body class="{% block body_class %}{% endblock %} {% if request.session.staff_id %}staff-app{% elif request.session.customer_id %}customer-app{% else %}public-site{% endif %}">
 
 <div class="drawer-overlay" id="drawerOverlay" onclick="closeSidebar()"></div>
 
@@ -30,7 +30,7 @@
 {% block topbar %}
 <div class="topbar">
   {% if request.session.staff_id or request.session.customer_id %}
-  <button type="button" class="nav-toggle" onclick="toggleSidebar()" aria-label="Menu">
+  <button type="button" class="nav-toggle" onclick="toggleSidebar()" aria-label="Menu" aria-expanded="false" aria-controls="{% if request.session.staff_id %}staffSidebar{% else %}customerSidebar{% endif %}">
     <i class="fa-solid fa-bars"></i>
   </button>
   {% else %}
@@ -96,12 +96,16 @@
     var ov = document.getElementById('drawerOverlay');
     if (!sb) return;
     var isOpen = sb.classList.toggle('open');
+    var toggle = document.querySelector('.nav-toggle');
+    if (toggle) toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
     if (ov) ov.classList.toggle('open', isOpen);
   }
   function closeSidebar() {
     var sb = document.querySelector('.sidebar');
     var ov = document.getElementById('drawerOverlay');
     if (sb) sb.classList.remove('open');
+    var toggle = document.querySelector('.nav-toggle');
+    if (toggle) toggle.setAttribute('aria-expanded', 'false');
     if (ov) ov.classList.remove('open');
   }
   document.addEventListener('keydown', function(e) {

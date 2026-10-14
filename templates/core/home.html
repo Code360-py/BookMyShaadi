@@ -39,7 +39,7 @@
   <div class="card">
     <h3 style="margin:0 0 4px;">{{ p.name }}</h3>
     <p class="muted" style="margin:0 0 12px;font-size:.9rem;">{{ p.tagline }}</p>
-    <div style="font-size:1.3rem;font-weight:700;margin-bottom:12px;">From {{ p.price_from }}</div>
+    <div style="font-size:1.3rem;font-weight:700;margin-bottom:12px;">From {{ p.formatted_price }}</div>
     <a href="{% url 'core:package_detail' p.slug %}" class="btn btn-primary btn-sm">View details</a>
   </div>
   {% endfor %}

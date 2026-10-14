@@ -2,15 +2,19 @@
 {% block title %}Vendors — {{ SITE_NAME }}{% endblock %}
 
 {% block content %}
-<h1 style="margin:0 0 20px;">Our vendors</h1>
+<div style="margin-bottom:22px;">
+  <h1 style="margin:0 0 6px;">Our vendors</h1>
+  <p class="muted" style="margin:0;">A starting point for the people and teams who bring a celebration together.</p>
+</div>
 
 {% if vendors %}
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;">
   {% for v in vendors %}
   <div class="card">
-    <div style="font-weight:600;">{{ v.name }}</div>
-    <div class="muted" style="font-size:.85rem;margin-top:2px;">{{ v.get_service_type_display }}</div>
-    {% if v.address %}<div class="muted" style="font-size:.8rem;margin-top:6px;">{{ v.address }}</div>{% endif %}
+    <div class="pill info" style="margin-bottom:12px;">{{ v.get_service_type_display }}</div>
+    <h2 style="font-size:1.05rem;margin:0 0 6px;">{{ v.name }}</h2>
+    {% if v.address %}<div class="muted" style="font-size:.85rem;">{{ v.address }}</div>{% endif %}
+    {% if v.notes %}<p class="muted" style="font-size:.85rem;line-height:1.6;margin:12px 0 0;">{{ v.notes }}</p>{% endif %}
   </div>
   {% endfor %}
 </div>

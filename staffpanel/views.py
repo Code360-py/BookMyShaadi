@@ -2,8 +2,14 @@
 Staff backend views.
 """
 
+from decimal import Decimal
+from urllib.parse import urlsplit
+
 from django.conf import settings
+from django.core.exceptions import ValidationError
+from django.core.validators import EmailValidator
 from django.db import models
+from django.forms import DateField, DecimalField, IntegerField
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
@@ -25,9 +31,46 @@ from bookings.models import Enquiry
 # ===========================================================================
 # Helpers
 # ===========================================================================
+def _parse_form_date(value):
+    if not value:
+        return None
+    try:
+        return DateField().clean(value)
+    except ValidationError:
+        return None
+
+
+def _parse_form_integer(value, *, minimum=0):
+    if value in (None, ""):
+        return None
+    try:
+        return IntegerField(min_value=minimum).clean(value)
+    except ValidationError:
+        return None
+
+
+def _parse_form_amount(value, *, allow_zero=False):
+    if value in (None, ""):
+        return None
+    try:
+        return DecimalField(
+            max_digits=12,
+            decimal_places=2,
+            min_value=0 if allow_zero else Decimal("0.01"),
+        ).clean(value)
+    except ValidationError:
+        return None
+
+
 def _safe_next(request, default: str = "/staff/") -> str:
     nxt = request.GET.get("next") or request.POST.get("next") or ""
-    if nxt.startswith("/") and not nxt.startswith("//"):
+    if not nxt.startswith("/") or nxt.startswith("//") or "\\" in nxt:
+        return default
+    try:
+        parts = urlsplit(nxt)
+    except ValueError:
+        return default
+    if not parts.scheme and not parts.netloc:
         return nxt
     return default
 
@@ -441,14 +484,14 @@ def booking_create(request):
             errors.append("Pick a customer.")
         if scheduled_at is None:
             errors.append("A valid date & time is required.")
-        try:
-            duration = int(duration)
-            if duration <= 0:
-                raise ValueError
-        except ValueError:
+        duration = _parse_form_integer(duration, minimum=1)
+        if duration is None:
             errors.append("Duration must be a positive number.")
             duration = 60
+        if booking_type not in dict(Booking.TYPE_CHOICES):
+            errors.append("Choose a valid booking type.")
         if status not in dict(Booking.STATUS_CHOICES):
+            errors.append("Choose a valid booking status.")
             status = Booking.STATUS_PENDING
 
         assigned = None
@@ -499,15 +542,26 @@ def booking_edit(request, pk):
             add_flash(request, "A valid date & time is required.", "error")
             return redirect("staffpanel:booking_edit", pk=pk)
 
-        booking.customer_id = request.POST.get("customer") or booking.customer_id
-        booking.booking_type = request.POST.get("booking_type") or booking.booking_type
+        duration = _parse_form_integer(request.POST.get("duration_minutes") or "60", minimum=1)
+        customer = Customer.objects.filter(pk=request.POST.get("customer") or booking.customer_id).first()
+        booking_type = request.POST.get("booking_type") or booking.booking_type
+        status = request.POST.get("status") or booking.status
+        if duration is None or customer is None or booking_type not in dict(Booking.TYPE_CHOICES) or status not in dict(Booking.STATUS_CHOICES):
+            add_flash(request, "Choose a valid customer, booking type, status, and positive duration.", "error")
+            return render(request, "staffpanel/bookings/form.html", {
+                "booking": booking, "customers": customers, "staff_list": staff_list,
+                "data": request.POST, "mode": "edit", "nav": "bookings",
+            })
+
+        booking.customer = customer
+        booking.booking_type = booking_type
         booking.scheduled_at = scheduled_at
-        booking.duration_minutes = int(request.POST.get("duration_minutes") or 60)
+        booking.duration_minutes = duration
         booking.location = (request.POST.get("location") or "").strip()
         booking.notes = (request.POST.get("notes") or "").strip()
-        booking.status = request.POST.get("status") or booking.status
+        booking.status = status
         assigned_id = request.POST.get("assigned_to") or None
-        booking.assigned_to_id = assigned_id if assigned_id else None
+        booking.assigned_to = Staff.objects.filter(pk=assigned_id, is_active=True).first() if assigned_id else None
         booking.save()
 
         audit_log(request, AuditLog.ACTION_UPDATE, model_name="Booking", object_id=booking.pk, object_repr=str(booking))
@@ -602,15 +656,33 @@ def event_create(request):
         status = request.POST.get("status") or Event.STATUS_PLANNING
         notes = (request.POST.get("notes") or "").strip()
 
+        parsed_date = _parse_form_date(date)
+        parsed_end_date = _parse_form_date(end_date)
+        raw_guest_count = request.POST.get("guest_count")
+        parsed_guest_count = _parse_form_integer(raw_guest_count, minimum=0)
+        parsed_budget = _parse_form_amount(budget, allow_zero=True)
+
         errors = []
         if not title:
             errors.append("Title is required.")
         if not customer_id:
             errors.append("Customer is required.")
-        if not date:
-            errors.append("Date is required.")
+        if parsed_date is None:
+            errors.append("Enter a valid event date.")
+        if end_date and parsed_end_date is None:
+            errors.append("Enter a valid end date.")
+        if parsed_date and parsed_end_date and parsed_end_date < parsed_date:
+            errors.append("End date cannot be before the event date.")
+        if raw_guest_count and parsed_guest_count is None:
+            errors.append("Guest count must be a whole number zero or greater.")
+        if parsed_budget is None:
+            errors.append("Budget must be a valid non-negative amount with up to two decimal places.")
         if not location:
             errors.append("Location is required.")
+        if event_type not in dict(Event.TYPE_CHOICES):
+            errors.append("Choose a valid event type.")
+        if status not in dict(Event.STATUS_CHOICES):
+            errors.append("Choose a valid event status.")
 
         customer = Customer.objects.filter(pk=customer_id).first() if customer_id else None
         if customer is None:
@@ -631,11 +703,11 @@ def event_create(request):
             customer=customer,
             bride_name=bride_name,
             groom_name=groom_name,
-            date=date,
-            end_date=end_date,
+            date=parsed_date,
+            end_date=parsed_end_date,
             location=location,
-            guest_count=guest_count or None,
-            budget=budget,
+            guest_count=parsed_guest_count,
+            budget=parsed_budget,
             status=status,
             notes=notes,
             created_by=get_current_staff(request),
@@ -656,21 +728,48 @@ def event_edit(request, pk):
     customers = Customer.objects.filter(is_active=True).order_by("full_name")
 
     if request.method == "POST":
-        event.title = (request.POST.get("title") or event.title).strip()
-        event.event_type = request.POST.get("event_type") or event.event_type
-        cid = request.POST.get("customer")
-        if cid:
-            c = Customer.objects.filter(pk=cid).first()
-            if c:
-                event.customer = c
+        title = (request.POST.get("title") or event.title).strip()
+        event_type = request.POST.get("event_type") or event.event_type
+        customer = Customer.objects.filter(pk=request.POST.get("customer") or event.customer_id).first()
+        date_value = request.POST.get("date") or event.date
+        end_date_value = request.POST.get("end_date") or None
+        guest_count_value = request.POST.get("guest_count") or None
+        budget_value = request.POST.get("budget") or event.budget
+        status = request.POST.get("status") or event.status
+        location = (request.POST.get("location") or "").strip()
+        parsed_date = _parse_form_date(date_value)
+        parsed_end_date = _parse_form_date(end_date_value)
+        parsed_guest_count = _parse_form_integer(guest_count_value, minimum=0)
+        parsed_budget = _parse_form_amount(budget_value, allow_zero=True)
+        if (
+            not title
+            or customer is None
+            or parsed_date is None
+            or (end_date_value and parsed_end_date is None)
+            or (parsed_date and parsed_end_date and parsed_end_date < parsed_date)
+            or (guest_count_value and parsed_guest_count is None)
+            or parsed_budget is None
+            or not location
+            or event_type not in dict(Event.TYPE_CHOICES)
+            or status not in dict(Event.STATUS_CHOICES)
+        ):
+            add_flash(request, "Review the event details, dates, guest count, and budget.", "error")
+            return render(request, "staffpanel/events/form.html", {
+                "event": event, "customers": customers, "data": request.POST,
+                "mode": "edit", "nav": "events",
+            })
+
+        event.title = title
+        event.event_type = event_type
+        event.customer = customer
         event.bride_name = (request.POST.get("bride_name") or "").strip()
         event.groom_name = (request.POST.get("groom_name") or "").strip()
-        event.date = request.POST.get("date") or event.date
-        event.end_date = request.POST.get("end_date") or None
-        event.location = (request.POST.get("location") or "").strip()
-        event.guest_count = request.POST.get("guest_count") or None
-        event.budget = request.POST.get("budget") or event.budget
-        event.status = request.POST.get("status") or event.status
+        event.date = parsed_date
+        event.end_date = parsed_end_date
+        event.location = location
+        event.guest_count = parsed_guest_count
+        event.budget = parsed_budget
+        event.status = status
         event.notes = (request.POST.get("notes") or "").strip()
         event.save()
 
@@ -997,6 +1096,7 @@ def task_create(request):
         description = (request.POST.get("description") or "").strip()
         assigned_id = request.POST.get("assigned_to") or None
         due_date = request.POST.get("due_date") or None
+        parsed_due_date = _parse_form_date(due_date)
         priority = request.POST.get("priority") or Task.PRIORITY_MED
         status = request.POST.get("status") or Task.STATUS_PENDING
 
@@ -1006,6 +1106,12 @@ def task_create(request):
         event = Event.objects.filter(pk=event_id).first() if event_id else None
         if event is None:
             errors.append("Pick an event.")
+        if due_date and parsed_due_date is None:
+            errors.append("Enter a valid due date.")
+        if priority not in dict(Task.PRIORITY_CHOICES):
+            errors.append("Choose a valid priority.")
+        if status not in dict(Task.STATUS_CHOICES):
+            errors.append("Choose a valid task status.")
 
         if errors:
             for e in errors:
@@ -1019,7 +1125,7 @@ def task_create(request):
         t = Task.objects.create(
             title=title, description=description,
             event=event, assigned_to=assigned,
-            due_date=due_date, priority=priority, status=status,
+            due_date=parsed_due_date, priority=priority, status=status,
             created_by=get_current_staff(request),
         )
         audit_log(request, AuditLog.ACTION_CREATE, model_name="Task", object_id=t.pk, object_repr=t.title)
@@ -1050,9 +1156,23 @@ def task_edit(request, pk):
                 task.event = e
         assigned_id = request.POST.get("assigned_to") or None
         task.assigned_to_id = assigned_id if assigned_id else None
-        task.due_date = request.POST.get("due_date") or None
-        task.priority = request.POST.get("priority") or task.priority
-        task.status = request.POST.get("status") or task.status
+        due_date = request.POST.get("due_date") or None
+        parsed_due_date = _parse_form_date(due_date)
+        priority = request.POST.get("priority") or task.priority
+        status = request.POST.get("status") or task.status
+        if (
+            (due_date and parsed_due_date is None)
+            or priority not in dict(Task.PRIORITY_CHOICES)
+            or status not in dict(Task.STATUS_CHOICES)
+        ):
+            add_flash(request, "Enter a valid due date, priority, and task status.", "error")
+            return render(request, "staffpanel/tasks/form.html", {
+                "task": task, "events": events, "staff_list": staff_list,
+                "data": request.POST, "mode": "edit", "nav": "tasks",
+            })
+        task.due_date = parsed_due_date
+        task.priority = priority
+        task.status = status
         task.save()
         audit_log(request, AuditLog.ACTION_UPDATE, model_name="Task", object_id=task.pk, object_repr=task.title)
         add_flash(request, "Task updated.", "success")
@@ -1161,14 +1281,12 @@ def expense_create(request):
         event = Event.objects.filter(pk=event_id).first() if event_id else None
         if event is None:
             errors.append("Pick an event.")
-        if not date:
-            errors.append("Date is required.")
-        try:
-            amt = float(amount)
-            if amt <= 0:
-                raise ValueError
-        except (TypeError, ValueError):
-            errors.append("Amount must be a positive number.")
+        parsed_date = _parse_form_date(date)
+        if parsed_date is None:
+            errors.append("Enter a valid date.")
+        amt = _parse_form_amount(amount)
+        if amt is None:
+            errors.append("Amount must be a positive amount with up to two decimal places.")
 
         if errors:
             for e in errors:
@@ -1182,7 +1300,7 @@ def expense_create(request):
         ex = Expense.objects.create(
             event=event, vendor=vendor,
             category=category, description=description,
-            amount=amount, status=status, date=date, notes=notes,
+            amount=amt, status=status, date=parsed_date, notes=notes,
             created_by=get_current_staff(request),
         )
         audit_log(request, AuditLog.ACTION_CREATE, model_name="Expense", object_id=ex.pk, object_repr=str(ex))
@@ -1211,11 +1329,23 @@ def expense_edit(request, pk):
                 expense.event = e
         vendor_id = request.POST.get("vendor") or None
         expense.vendor_id = vendor_id if vendor_id else None
-        expense.category = request.POST.get("category") or expense.category
+        category = request.POST.get("category") or expense.category
+        status = request.POST.get("status") or expense.status
         expense.description = (request.POST.get("description") or "").strip()
-        expense.amount = request.POST.get("amount") or expense.amount
-        expense.status = request.POST.get("status") or expense.status
-        expense.date = request.POST.get("date") or expense.date
+        amount = request.POST.get("amount") or expense.amount
+        date_value = request.POST.get("date") or expense.date
+        parsed_amount = _parse_form_amount(amount)
+        parsed_date = _parse_form_date(date_value)
+        if parsed_amount is None or parsed_date is None or category not in dict(Expense.CATEGORY_CHOICES) or status not in dict(Expense.STATUS_CHOICES):
+            add_flash(request, "Enter a valid positive amount, date, category, and status.", "error")
+            return render(request, "staffpanel/expenses/form.html", {
+                "expense": expense, "events": events, "vendors": vendors,
+                "data": request.POST, "mode": "edit", "nav": "expenses",
+            })
+        expense.amount = parsed_amount
+        expense.category = category
+        expense.status = status
+        expense.date = parsed_date
         expense.notes = (request.POST.get("notes") or "").strip()
         expense.save()
         audit_log(request, AuditLog.ACTION_UPDATE, model_name="Expense", object_id=expense.pk, object_repr=str(expense))
@@ -1313,14 +1443,12 @@ def payment_create(request):
         event = Event.objects.filter(pk=event_id).first() if event_id else None
         if event is None:
             errors.append("Pick an event.")
-        if not date:
-            errors.append("Date is required.")
-        try:
-            amt = float(amount)
-            if amt <= 0:
-                raise ValueError
-        except (TypeError, ValueError):
-            errors.append("Amount must be a positive number.")
+        parsed_date = _parse_form_date(date)
+        if parsed_date is None:
+            errors.append("Enter a valid date.")
+        amt = _parse_form_amount(amount)
+        if amt is None:
+            errors.append("Amount must be a positive amount with up to two decimal places.")
         if direction == Payment.DIRECTION_OUT and not vendor_id:
             errors.append("Outgoing payments require a vendor.")
 
@@ -1335,9 +1463,9 @@ def payment_create(request):
         vendor = Vendor.objects.filter(pk=vendor_id).first() if vendor_id else None
         p = Payment.objects.create(
             event=event, vendor=vendor,
-            direction=direction, amount=amount,
+            direction=direction, amount=amt,
             method=method, status=status,
-            reference_no=reference_no, date=date, notes=notes,
+            reference_no=reference_no, date=parsed_date, notes=notes,
             created_by=get_current_staff(request),
         )
         audit_log(request, AuditLog.ACTION_CREATE, model_name="Payment", object_id=p.pk, object_repr=str(p))
@@ -1367,12 +1495,31 @@ def payment_edit(request, pk):
                 payment.event = e
         vendor_id = request.POST.get("vendor") or None
         payment.vendor_id = vendor_id if vendor_id else None
-        payment.direction = request.POST.get("direction") or payment.direction
-        payment.amount = request.POST.get("amount") or payment.amount
-        payment.method = request.POST.get("method") or payment.method
-        payment.status = request.POST.get("status") or payment.status
+        direction = request.POST.get("direction") or payment.direction
+        method = request.POST.get("method") or payment.method
+        status = request.POST.get("status") or payment.status
+        amount = request.POST.get("amount") or payment.amount
+        date_value = request.POST.get("date") or payment.date
+        parsed_amount = _parse_form_amount(amount)
+        parsed_date = _parse_form_date(date_value)
+        if (
+            parsed_amount is None
+            or parsed_date is None
+            or direction not in dict(Payment.DIRECTION_CHOICES)
+            or method not in dict(Payment.METHOD_CHOICES)
+            or status not in dict(Payment.STATUS_CHOICES)
+        ):
+            add_flash(request, "Enter a valid positive amount, date, direction, method, and status.", "error")
+            return render(request, "staffpanel/payments/form.html", {
+                "payment": payment, "events": events, "vendors": vendors,
+                "data": request.POST, "mode": "edit", "nav": "payments",
+            })
+        payment.amount = parsed_amount
+        payment.direction = direction
+        payment.method = method
+        payment.status = status
         payment.reference_no = (request.POST.get("reference_no") or "").strip()
-        payment.date = request.POST.get("date") or payment.date
+        payment.date = parsed_date
         payment.notes = (request.POST.get("notes") or "").strip()
         payment.save()
         audit_log(request, AuditLog.ACTION_UPDATE, model_name="Payment", object_id=payment.pk, object_repr=str(payment))
@@ -1475,12 +1622,16 @@ def staff_create(request):
         password = request.POST.get("password") or ""
 
         errors = []
-        if not full_name:
-            errors.append("Full name is required.")
-        if not email or "@" not in email:
-            errors.append("Valid email is required.")
+        if not full_name or len(full_name) > 255:
+            errors.append("Enter a name with 1 to 255 characters.")
+        try:
+            EmailValidator()(email)
+        except ValidationError:
+            errors.append("Enter a valid email address.")
         if Staff.objects.filter(email__iexact=email).exists():
             errors.append("A staff member with that email already exists.")
+        if len(phone) > 20:
+            errors.append("Phone number must be 20 characters or fewer.")
         if len(password) < 8:
             errors.append("Password must be at least 8 characters.")
         if role not in dict(Staff.ROLE_CHOICES):
@@ -1528,8 +1679,10 @@ def staff_edit(request, pk):
         role = request.POST.get("role") or member.role
 
         errors = []
-        if not full_name:
-            errors.append("Full name is required.")
+        if not full_name or len(full_name) > 255:
+            errors.append("Enter a name with 1 to 255 characters.")
+        if len(phone) > 20:
+            errors.append("Phone number must be 20 characters or fewer.")
         if role not in dict(Staff.ROLE_CHOICES):
             errors.append("Invalid role.")
         # Prevent self-demotion from last admin

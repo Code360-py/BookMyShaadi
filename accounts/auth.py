@@ -11,6 +11,7 @@ No django.contrib.auth anywhere.
 """
 
 from functools import wraps
+from urllib.parse import urlencode
 
 from django.conf import settings
 from django.contrib.sessions.backends.base import SessionBase
@@ -99,7 +100,9 @@ def customer_required(view_func):
     def wrapper(request, *args, **kwargs):
         if get_current_customer(request) is None:
             login_url = getattr(settings, "CUSTOMER_LOGIN_URL", "/login/?tab=customer")
-            return redirect(f"{login_url}?next={request.path}")
+            separator = "&" if "?" in login_url else "?"
+            next_url = urlencode({"next": request.get_full_path()})
+            return redirect(f"{login_url}{separator}{next_url}")
         return view_func(request, *args, **kwargs)
     return wrapper
 
@@ -113,7 +116,9 @@ def staff_required(view_func):
     def wrapper(request, *args, **kwargs):
         if get_current_staff(request) is None:
             login_url = getattr(settings, "STAFF_LOGIN_URL", "/login/?tab=staff")
-            return redirect(f"{login_url}?next={request.path}")
+            separator = "&" if "?" in login_url else "?"
+            next_url = urlencode({"next": request.get_full_path()})
+            return redirect(f"{login_url}{separator}{next_url}")
         return view_func(request, *args, **kwargs)
     return wrapper
 
@@ -129,7 +134,9 @@ def role_required(*roles: str):
             staff = get_current_staff(request)
             if staff is None:
                 login_url = getattr(settings, "STAFF_LOGIN_URL", "/login/?tab=staff")
-                return redirect(f"{login_url}?next={request.path}")
+                separator = "&" if "?" in login_url else "?"
+                next_url = urlencode({"next": request.get_full_path()})
+                return redirect(f"{login_url}{separator}{next_url}")
             if staff.role not in roles:
                 return HttpResponseForbidden("You do not have access to this page.")
             return view_func(request, *args, **kwargs)

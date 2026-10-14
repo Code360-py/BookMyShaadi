@@ -2,17 +2,23 @@
 {% block title %}Gallery — {{ SITE_NAME }}{% endblock %}
 
 {% block content %}
-<h1 style="margin:0 0 20px;">Gallery</h1>
+<div style="margin-bottom:22px;">
+  <h1 style="margin:0 0 6px;">Gallery</h1>
+  <p class="muted" style="margin:0;">Ceremony settings, thoughtful details and moments worth remembering.</p>
+</div>
 
 {% if images %}
 <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;">
   {% for img in images %}
   <div class="card" style="padding:0;overflow:hidden;">
     {% if img.src %}
-      <img src="{{ img.src }}" alt="{{ img.title }}" style="width:100%;height:180px;object-fit:cover;">
+      <img src="{{ img.src }}" alt="{{ img.title }}" loading="lazy" style="width:100%;height:220px;object-fit:cover;">
     {% endif %}
     {% if img.title %}
-      <div style="padding:10px 12px;font-size:.9rem;">{{ img.title }}</div>
+      <div style="padding:12px;">
+        <div style="font-size:.9rem;font-weight:600;">{{ img.title }}</div>
+        {% if img.category %}<div class="muted" style="font-size:.72rem;margin-top:4px;">{{ img.category }}</div>{% endif %}
+      </div>
     {% endif %}
   </div>
   {% endfor %}

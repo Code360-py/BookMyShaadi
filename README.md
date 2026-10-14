@@ -75,7 +75,7 @@ python -m venv .venv
 ### 3. Install Dependencies
 
 ```bash
-pip install django
+pip install -r requirements.txt
 ```
 
 ### 4. Run Database Migrations
@@ -88,6 +88,7 @@ python manage.py migrate
 
 ```bash
 python manage.py seed_packages
+python manage.py seed_public_content
 python manage.py seed_demo
 ```
 

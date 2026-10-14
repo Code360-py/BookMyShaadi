@@ -72,8 +72,15 @@ img, svg, video { max-width: 100%; height: auto; display: block; }
 }
 @media (min-width: 900px) {
   .page {
-    padding-left: calc(240px + var(--content-pad));
+    padding-left: var(--content-pad);
     padding-bottom: 32px;
+  }
+  .staff-app .page,
+  .customer-app .page {
+    max-width: 1180px;
+    margin-left: 254px;
+    margin-right: 24px;
+    padding-left: var(--content-pad);
   }
 }
 
@@ -427,6 +434,11 @@ body.has-tabbar .tabbar { display: flex !important; overflow-x: auto; }
 body.has-tabbar .tabbar::-webkit-scrollbar { display: none; }
 body.has-tabbar .page   { padding-bottom: calc(var(--tab-h) + 32px); }
 body.has-tabbar .footer { padding-bottom: calc(var(--tab-h) + 32px); }
+@media (min-width: 900px) {
+  body.has-tabbar .tabbar { display: none !important; }
+  body.has-tabbar .page { padding-bottom: 32px; }
+  body.has-tabbar .footer { padding-bottom: 40px; }
+}
 
 /* ============================================================
    Dashboard grid
@@ -659,18 +671,16 @@ a.tile .tile-link { color: var(--brand); }
   color: var(--text);
   border-bottom: 1px solid var(--border);
   margin-bottom: 12px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  display: block;
 }
-.sidebar .side-brand i { color: var(--brand); }
+.sidebar .side-brand i { color: var(--brand); margin-right: 8px; }
 .sidebar .side-sub {
   font-size: .68rem;
   letter-spacing: .14em;
   text-transform: uppercase;
   color: var(--text-mute);
   font-weight: 500;
-  margin-left: auto;
+  margin: 4px 0 0 26px;
 }
 
 .sidebar .side-group { margin-bottom: 14px; }
