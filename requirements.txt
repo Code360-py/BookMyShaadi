@@ -1,0 +1,4 @@
+django
+tzdata
+pytz
+pillow
